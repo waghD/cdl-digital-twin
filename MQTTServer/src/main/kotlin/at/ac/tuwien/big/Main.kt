@@ -46,7 +46,14 @@ fun main(args: Array<String>) {
     val jobs = JobController()
     val web = WebController(mqtt, controller, jobs, influx)
 
-    StateObserver.stateMachine = StateMachine(jobs.getJobs().first().states)
+
+    StateObserver.stateMachines = mutableListOf(
+            StateMachine("roboticArm", jobs.getJobs().first().roboticArmStates),
+            StateMachine("conveyor",jobs.getJobs().first().conveyorStates),
+            StateMachine("testingRig",jobs.getJobs().first().testingRigStates),
+            StateMachine("slider",jobs.getJobs().first().sliderStates)
+    )
+
 
     controller.start()
     web.start()

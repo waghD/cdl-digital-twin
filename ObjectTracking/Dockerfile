@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 
 # Install app dependencies
 COPY package*.json ./
-
+RUN echo 'TEST123 in dockerfile'
 RUN npm install --only=production
 
 # Bundle app source

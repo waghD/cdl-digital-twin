@@ -18,8 +18,12 @@ class JobController {
     var selected: Job
         private set
 
+    /**
+     * Reads from jobs.json ("..\MQTTServer\src\main\resources")
+     */
     init {
         val jobsText = this::class.java.classLoader.getResource("jobs.json").readText()
+       // println(jobsText)
         val jobsType = object : TypeToken<List<Job>>() {}.type
         val gson = GsonBuilder()
                 .registerTypeAdapterFactory(
@@ -28,7 +32,10 @@ class JobController {
                                 .registerSubtype(ChoiceState::class.java, "ChoiceState")
                 )
                 .create()
+        //Map read-in jobs to Job objects within a list
         jobs = gson.fromJson<List<Job>>(jobsText, jobsType).map { Pair(it.id, it) }.toMap().toMutableMap()
+       /* println("Jobs.values in JobController:")
+        println(jobs.values)*/
         selected = jobs.values.first()
     }
 

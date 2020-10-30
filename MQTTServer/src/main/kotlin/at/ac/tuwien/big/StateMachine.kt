@@ -7,7 +7,8 @@ import at.ac.tuwien.big.sm.StateBase
 /**
  * Holds all defined states and according successor
  */
-class StateMachine(val states: List<StateBase>) {
+class StateMachine(val name: String, val states: List<StateBase>) {
+
 
     /**
      * Finds the successor state for the given [state]. Our state machine defines two state types: [BasicState] und
@@ -78,6 +79,8 @@ class StateMachine(val states: List<StateBase>) {
             }
         }
     }
+
+
 
     fun all(): List<BasicState> {
         return states

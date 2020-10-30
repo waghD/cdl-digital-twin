@@ -14,7 +14,8 @@ object StateObserver : Observable<BasicState>() {
     /**
      * State machine used to find correct successor states
      */
-    var stateMachine: StateMachine? = null
+    var stateMachines: MutableList<StateMachine>? = null
+
 
     /**
      * Most recently observed state
@@ -24,17 +25,29 @@ object StateObserver : Observable<BasicState>() {
     /**
      * Latest matching state, given the current job
      */
-    var latestMatch: Pair<BasicState, Boolean> = Pair(BasicState(), true)
+    var latestMatches: MutableMap<String, Pair<BasicState, Boolean>> = mutableMapOf(
+                                                "roboticArm" to Pair(BasicState(), true),
+                                                "conveyor" to Pair(BasicState(), true),
+                                                "testingRig" to Pair(BasicState(), true),
+                                                "slider" to Pair(BasicState(), true)
+                                            )
         private set
 
     /**
      * Successor state, given the latest matching state
      */
-    var targetState: BasicState = BasicState()
-        private set
+    var targetStates:  MutableMap<String, BasicState> = mutableMapOf(
+            "roboticArm" to BasicState(),
+            "conveyor" to BasicState(),
+            "testingRig" to BasicState(),
+            "slider" to BasicState()
+    )
+
 
     /**
      * Update the unit with new sensor information. This includes matching the updated state to the set of defined states.
+     *
+     * @param e: StateEvent holding current sensor information
      */
     fun update(e: StateEvent) {
         when (e) {
@@ -61,28 +74,53 @@ object StateObserver : Observable<BasicState>() {
                 snapshot = snapshot.copy(testingRigState = tNew)
             }
         }
-        val match = matchState(snapshot)
-        if (match != null && latestMatch != match) {
-            latestMatch = match
-            notify(latestMatch.first)
+
+
+
+        StateObserver.stateMachines?.forEach {sm ->
+            val match = matchState(snapshot, sm)
+
+            if (match != null && latestMatches[sm.name] != match) {
+                println("match:")
+                print(match)
+                latestMatches[sm.name] = match
+                notify(latestMatches[sm.name]?.first ?: BasicState())
+            }
         }
+
     }
 
     /**
      * Return the defined successor state of the latest matching state, according to the state machine
      */
-    fun next(): List<Transition> {
-        val successor = stateMachine?.successor(latestMatch.first, latestMatch.second)
+    fun next(stateMachine: StateMachine): List<Transition> {
+        val successor = stateMachine?.successor(latestMatches[stateMachine.name]?.first ?: BasicState(), latestMatches[stateMachine.name]?.second)
         return if (successor != null) {
-            targetState = successor
-            val env = if (latestMatch.second) {
-                latestMatch.first.environment
+            targetStates[stateMachine.name] = successor
+          //  print("Successor: ")
+          //  println(successor)
+            val isSecond = latestMatches[stateMachine.name]?.second ?: false
+
+            val env = if (isSecond) {
+                latestMatches[stateMachine.name]?.first?.environment
             } else {
-                latestMatch.first.altEnvironment!!
+                latestMatches[stateMachine.name]?.first?.altEnvironment!!
             }
+          //  print("latestMatch: ")
+          //  println(latestMatch)
+
             val succ = successor.environment
+
             val result = mutableListOf<Transition>()
-            if (succ.roboticArmState != null) {
+
+            when (stateMachine.name) {
+                "roboticArm" -> result.add(RoboticArmTransition(env?.roboticArmState ?: RoboticArmState(), succ.roboticArmState ?: RoboticArmState()))
+                "conveyor" -> result.add(ConveyorTransition(env?.conveyorState ?: ConveyorState(), succ.conveyorState ?: ConveyorState()))
+                "testingRig" -> result.add(TestingRigTransition(env?.testingRigState ?: TestingRigState(), succ.testingRigState ?: TestingRigState()))
+                "slider" -> result.add(SliderTransition(env?.sliderState ?: SliderState(), succ.sliderState ?: SliderState()))
+
+            }
+          /*  if (succ.roboticArmState != null) {
                 result.add(RoboticArmTransition(env.roboticArmState ?: RoboticArmState(), succ.roboticArmState))
             }
             if (succ.conveyorState != null) {
@@ -93,7 +131,8 @@ object StateObserver : Observable<BasicState>() {
             }
             if (succ.sliderState != null) {
                 result.add(SliderTransition(env.sliderState ?: SliderState(), succ.sliderState))
-            }
+            }*/
+
             return result
         } else {
             emptyList()
@@ -103,23 +142,30 @@ object StateObserver : Observable<BasicState>() {
     /**
      * Return the defined successor state of the latest matching state, according to the state machine
      */
-    fun reset(): List<Transition> {
+    fun reset(stateMachine:StateMachine): List<Transition> {
         val successor = stateMachine?.states?.first() as BasicState
         val env = (stateMachine?.states?.first() as BasicState?)?.environment
-        targetState = successor
+        targetStates[stateMachine.name] = successor
         return if (env != null) {
-            listOf(
+            when (stateMachine.name) {
+                "roboticArm" -> listOf(RoboticArmTransition(RoboticArmState(), env.roboticArmState ?: RoboticArmState()))
+                "conveyor" ->  listOf( ConveyorTransition(ConveyorState(), env.conveyorState ?: ConveyorState()))
+                "testingRig" -> listOf(SliderTransition(SliderState(), env.sliderState ?: SliderState()))
+                "slider" ->  listOf(TestingRigTransition(TestingRigState(), env.testingRigState ?: TestingRigState()))
+                else -> emptyList()
+            }
+           /* listOf(
                     RoboticArmTransition(RoboticArmState(), env.roboticArmState ?: RoboticArmState()),
                     ConveyorTransition(ConveyorState(), env.conveyorState ?: ConveyorState()),
                     SliderTransition(SliderState(), env.sliderState ?: SliderState()),
                     TestingRigTransition(TestingRigState(), env.testingRigState ?: TestingRigState())
-            )
+            )*/
         } else {
             emptyList()
         }
     }
 
-    fun atEndState() = stateMachine?.isEndState(latestMatch.first) ?: true
+    fun atEndState(stateMachine: StateMachine) = stateMachine?.isEndState(latestMatches[stateMachine.name]?.first ?: BasicState()) ?: true
 
     /**
      * Transform successor into 'goto' commands for the MQTT API
@@ -169,12 +215,15 @@ object StateObserver : Observable<BasicState>() {
     }
 
     /**
-     * Match the given state against all states defined in this class and returns a match
+     * Match the given state (current environment state indicated by sensor values)
+     * against all states defined in this class and returns the first matched state.
+     *
+     *
      * @return the matching state or null, if no match was found
      */
-    private fun matchState(env: Environment): Pair<BasicState, Boolean>? {
+    private fun matchState(env: Environment, sm: StateMachine): Pair<BasicState, Boolean>? {
 
-        val all = stateMachine?.all() ?: emptyList()
+        val all = sm?.all() ?: emptyList()
 
         val matches = all.filter {
             env.matches(it.environment) || (it.altEnvironment != null && env.matches(it.altEnvironment!!))

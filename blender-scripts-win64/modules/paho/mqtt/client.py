@@ -1051,6 +1051,13 @@ class Client(object):
         if topic is None or len(topic) == 0:
             raise ValueError('Invalid topic.')
 
+        print("Topic: ")
+        print(topic)
+        print("payload: ")
+        print(payload)
+        print("qos: ")
+        print(qos)
+
         topic = topic.encode('utf-8')
 
         if self._topic_wildcard_len_check(topic) != MQTT_ERR_SUCCESS:

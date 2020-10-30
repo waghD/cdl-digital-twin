@@ -7,5 +7,8 @@ data class Job(
         val id: String = "",
         var name: String = "",
         val target: String = "",
-        val states: MutableList<StateBase> = mutableListOf()
+        val roboticArmStates: MutableList<StateBase> = mutableListOf(),
+        val conveyorStates: MutableList<StateBase> = mutableListOf(),
+        val sliderStates: MutableList<StateBase> = mutableListOf(),
+        val testingRigStates: MutableList<StateBase> = mutableListOf()
 )

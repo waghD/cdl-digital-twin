@@ -138,6 +138,7 @@ export default {
         var self = this;
         this.socket.addEventListener("message", function(event) {
             let msg = JSON.parse(event.data);
+            console.log(msg);
             if (msg.topic === "state") {
                 let name = msg.message
                 let jobs = [];

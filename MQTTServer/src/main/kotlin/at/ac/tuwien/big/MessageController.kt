@@ -2,6 +2,7 @@ package at.ac.tuwien.big
 
 import at.ac.tuwien.big.entity.state.*
 import at.ac.tuwien.big.entity.transition.RoboticArmTransition
+import at.ac.tuwien.big.entity.transition.Transition
 import com.github.sarxos.webcam.Webcam
 import com.google.gson.Gson
 import java.awt.Dimension
@@ -44,12 +45,14 @@ class MessageController(private val mqtt: MQTT,
     }
 
     fun start() {
-        timer.schedule(0, 1000) {
+        timer.schedule(0, 2000) {
             observe()
         }
 
+        println("Is webcam null in MessageController?")
+        println(webcam)
         if (webcam != null) {
-            timer.schedule(0, 2000) {
+            timer.schedule(0, 1000) {
                 webcam?.open()
                 val file = File.createTempFile("webcam", ".png")
                 val stream = ByteArrayOutputStream()
@@ -70,16 +73,20 @@ class MessageController(private val mqtt: MQTT,
         }
     }
 
+    /**
+     *
+     */
     private fun onMessage(topic: String, message: String) {
         when (topic) {
             sensor, simSensor -> {
                 val state = parse(message)
                 if (recording) {
                     if (state is RoboticArmState) {
-                        val label = if (lastInTransition) null else StateObserver.targetState.name
+                        val label = if (lastInTransition) null else StateObserver.targetStates["roboticArm"]?.name
                         timeSeriesDatabase.savePoint(state, label)
                     }
                 }
+
                 StateObserver.update(state)
                 sendWebSocketMessageSensor(gson.toJson(state))
             }
@@ -115,25 +122,45 @@ class MessageController(private val mqtt: MQTT,
 
     private fun observe() {
         if (autoPlay) {
-            val latest = StateObserver.latestMatch.first
-            val formerTarget = StateObserver.targetState
-            val transitions = if (!StateObserver.atEndState()) {
+            val transitions = mutableListOf<Transition>()
+            StateObserver.stateMachines?.forEach {
+                if (!StateObserver.atEndState(it)) {
+                    transitions.addAll(StateObserver.next(it))
+                } else {
+                    transitions.addAll(StateObserver.reset(it))
+                }
+            }
+
+            val latest = StateObserver.latestMatches["roboticArm"]?.first
+            val formerTarget = StateObserver.targetStates["roboticArm"]
+            /*val transitions = if (!StateObserver.atEndState()) {
                 StateObserver.next()
             } else {
                 StateObserver.reset()
-            }
-            val nowInTransition = formerTarget.environment.roboticArmState != StateObserver.targetState.environment.roboticArmState
+            }*/
+           // println("Transitions:")
+           // println(transitions)
+
+            val nowInTransition = formerTarget?.environment?.roboticArmState != StateObserver.targetStates["roboticArm"]?.environment?.roboticArmState
             if (transitions.isNotEmpty()) {
                 for (transition in transitions) {
+
                     if (transition is RoboticArmTransition) {
                         if (!lastInTransition && nowInTransition) {
-                            println("Next: ${latest.name} -> ${StateObserver.targetState.name}")
+                            // println("Next: ${latest.name} -> ${StateObserver.targetState.name}")
+                        }
+                        if (lastInTransition && !nowInTransition) {
                         }
                     }
-                    val context = StateObserver.latestMatch
-                    sendWebSocketMessageContext(gson.toJson(context))
+                    StateObserver.latestMatches.forEach {
+                        sendWebSocketMessageContext(gson.toJson(it.value))
+
+                    }
+                   // val context = StateObserver.latestMatch
+                    //sendWebSocketMessageContext(gson.toJson(context))
                     val commands = StateObserver.transform(transition)
                     for (c in commands) {
+
                         mqtt.send(c)
                     }
                 }
@@ -143,18 +170,28 @@ class MessageController(private val mqtt: MQTT,
     }
 
     fun reset() {
-        val latest = StateObserver.latestMatch.first
-        val formerTarget = StateObserver.targetState
-        val transitions = StateObserver.reset()
-        val nowInTransition = formerTarget.environment.roboticArmState != StateObserver.targetState.environment.roboticArmState
+
+       // val latest = StateObserver.latestMatch.first
+        val formerTarget = StateObserver.targetStates["roboticArm"]
+        val transitions = mutableListOf<Transition>()
+        StateObserver.stateMachines?.forEach {
+            transitions.addAll(StateObserver.reset(it))
+        }
+        val nowInTransition = formerTarget?.environment?.roboticArmState != StateObserver.targetStates["roboticArm"]?.environment?.roboticArmState
+
         for (transition in transitions) {
             if (!lastInTransition && nowInTransition) {
-                println("Resetting: ${latest.name} -> ${StateObserver.targetState.name}")
             }
-            val context = StateObserver.latestMatch
-            sendWebSocketMessageContext(gson.toJson(context))
+            StateObserver.latestMatches.forEach {
+                sendWebSocketMessageContext(gson.toJson(it.value))
+
+            }
+            //val context = StateObserver.latestMatch
+
+            //sendWebSocketMessageContext(gson.toJson(context))
             val commands = StateObserver.transform(transition)
             for (c in commands) {
+
                 mqtt.send(c)
             }
         }

@@ -7,7 +7,10 @@ import org.eclipse.paho.client.mqttv3.*
  */
 class MQTT(host: String, receivingTopics: List<String>, private val sendingTopics: List<String>) : MqttCallback {
 
-    private data class Subscription(val topics: List<String>, val callback: (String, String) -> Unit)
+    private data class Subscription(
+            val topics: List<String>,
+            val callback: (String, String) -> Unit
+    )
 
     private val qos = 0
     private val client = MqttClient("tcp://$host:1883", "Controller")

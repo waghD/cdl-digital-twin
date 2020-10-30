@@ -162,36 +162,38 @@ class WebController(private val mqtt: MQTT,
             /**
              * Get all states
              */
-            get("/all") { ctx -> ctx.json(StateObserver.stateMachine?.states!!) }
+            get("/all") { ctx ->/* ctx.json(StateObserver.stateMachine?.states!!)*/  }
 
             /**
              * Get the current robotic arm state
              */
-            get("/roboticArmState") { ctx -> ctx.json(StateObserver.latestMatch.first.environment.roboticArmState!!) }
+            get("/roboticArmState") { ctx -> ctx.json(StateObserver.latestMatches["roboticArm"]?.first?.environment?.roboticArmState!!) }
 
             /**
              * Get the current slider state
              */
-            get("/sliderState") { ctx -> ctx.json(StateObserver.latestMatch.first.environment.sliderState!!) }
+            get("/sliderState") { ctx -> ctx.json(StateObserver.latestMatches["slider"]?.first?.environment?.sliderState!!) }
 
             /**
              * Get the current conveyor state
              */
-            get("/conveyorState") { ctx -> ctx.json(StateObserver.latestMatch.first.environment.conveyorState!!) }
+            get("/conveyorState") { ctx -> ctx.json(StateObserver.latestMatches["conveyor"]?.first?.environment?.conveyorState!!) }
 
             /**
              * Get the current testing rig state
              */
-            get("/testingRigState") { ctx -> ctx.json(StateObserver.latestMatch.first.environment.testingRigState!!) }
+            get("/testingRigState") { ctx -> ctx.json(StateObserver.latestMatches["testingRig"]?.first?.environment?.testingRigState!!) }
 
             /**
              * Set the current robotic arm state
              */
             put("/roboticArmState") { ctx ->
                 run {
+                    /*
                     val match = StateObserver.stateMachine?.all()?.find { it.name == ctx.body() }
                     if (match != null)
                         send(RoboticArmTransition(RoboticArmState(), match.environment.roboticArmState!!))
+                    */
                 }
             }
 
@@ -200,9 +202,9 @@ class WebController(private val mqtt: MQTT,
              */
             put("/sliderState") { ctx ->
                 run {
-                    val match = StateObserver.stateMachine?.all()?.find { it.name == ctx.body() }
+                   /* val match = StateObserver.stateMachine?.all()?.find { it.name == ctx.body() }
                     if (match != null)
-                        send(SliderTransition(SliderState(), match.environment.sliderState!!))
+                        send(SliderTransition(SliderState(), match.environment.sliderState!!))*/
                 }
             }
 
@@ -211,9 +213,10 @@ class WebController(private val mqtt: MQTT,
              */
             put("/conveyorState") { ctx ->
                 run {
+                    /*
                     val match = StateObserver.stateMachine?.all()?.find { it.name == ctx.body() }
                     if (match != null)
-                        send(ConveyorTransition(ConveyorState(), match.environment.conveyorState!!))
+                        send(ConveyorTransition(ConveyorState(), match.environment.conveyorState!!))*/
                 }
             }
 
@@ -222,9 +225,10 @@ class WebController(private val mqtt: MQTT,
              */
             put("/testingRigState") { ctx ->
                 run {
+                    /*
                     val match = StateObserver.stateMachine?.all()?.find { it.name == ctx.body() }
                     if (match != null)
-                        send(TestingRigTransition(TestingRigState(), match.environment.testingRigState!!))
+                        send(TestingRigTransition(TestingRigState(), match.environment.testingRigState!!))*/
                 }
             }
 
@@ -248,7 +252,7 @@ class WebController(private val mqtt: MQTT,
              */
             put("/jobs/:id") { ctx ->
                 run {
-                    try {
+                   /* try {
                         val id = ctx.param("id") ?: ""
                         val job = jobController.getJob(id)
                         if (job != null) {
@@ -261,7 +265,7 @@ class WebController(private val mqtt: MQTT,
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
-                    }
+                    }*/
                 }
             }
 
@@ -270,12 +274,13 @@ class WebController(private val mqtt: MQTT,
              * @return a generated id for the job
              */
             post("/jobs") { ctx ->
+                /*
                 run {
                     val newJob = gson.fromJson(ctx.body(), Job::class.java)
                     val id = jobController.addJob(newJob)
                     StateObserver.stateMachine = StateMachine(newJob.states)
                     ctx.json(id)
-                }
+                }*/
             }
 
             /**
@@ -283,12 +288,12 @@ class WebController(private val mqtt: MQTT,
              */
             post("/jobFile") { ctx ->
                 run {
-                    val writer = StringWriter()
+                   /* val writer = StringWriter()
                     IOUtils.copy(ctx.uploadedFile("job")?.content, writer)
                     val newJob = gson.fromJson(writer.toString(), Job::class.java)
                     val id = jobController.addJob(newJob)
                     StateObserver.stateMachine = StateMachine(newJob.states)
-                    ctx.json(id)
+                    ctx.json(id)*/
                 }
             }
 
@@ -297,9 +302,10 @@ class WebController(private val mqtt: MQTT,
              */
             put("/selectedJob") { ctx ->
                 run {
+                    /*
                     jobController.setSelectedJob(ctx.body())
                     messageController.autoPlay = false
-                    StateObserver.stateMachine = StateMachine(jobController.selected.states)
+                    StateObserver.stateMachine = StateMachine(jobController.selected.states)*/
                 }
             }
 
@@ -327,6 +333,7 @@ class WebController(private val mqtt: MQTT,
         if (match != null) {
             val commands = StateObserver.transform(match)
             for (c in commands) {
+                println("webcontroller: ")
                 mqtt.send(c)
             }
         }

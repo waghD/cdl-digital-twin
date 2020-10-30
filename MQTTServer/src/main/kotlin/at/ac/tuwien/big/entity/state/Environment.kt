@@ -1,5 +1,6 @@
 package at.ac.tuwien.big.entity.state
 
+import at.ac.tuwien.big.StateMachine
 import at.ac.tuwien.big.doubleAccuracy
 import at.ac.tuwien.big.singleAccuracy
 
@@ -17,5 +18,9 @@ data class Environment(
                 && (next.conveyorState == null || this.conveyorState?.match(next.conveyorState, doubleAccuracy) ?: true)
                 && (next.testingRigState == null || this.testingRigState?.match(next.testingRigState, singleAccuracy) ?: true)
                 && (next.sliderState == null || this.sliderState?.match(next.sliderState, doubleAccuracy) ?: true)
+
+
     }
+
+
 }
