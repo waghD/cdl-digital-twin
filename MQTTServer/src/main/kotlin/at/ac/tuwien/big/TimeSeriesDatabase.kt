@@ -36,7 +36,7 @@ class TimeSeriesDatabase(host: String) {
     /**
      * Save a robotic arm measurement point together with a reference point.
      */
-    fun savePoint(state: RoboticArmState, ref: RoboticArmState?, label: String? = null) {
+    fun savePoint(state: RoboticArmState, label: String? = null) {
         val batchPoints = BatchPoints
                 .database(dbName)
                 .consistency(ConsistencyLevel.ALL)
@@ -44,20 +44,10 @@ class TimeSeriesDatabase(host: String) {
         val pointBuilder = Point.measurement("robotic_arm")
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                 .addField("base", state.basePosition)
-                .addField("ref_base", ref?.basePosition)
-                .addField("base_re", if (ref != null) Math.abs(state.basePosition - ref.basePosition) else 0.0)
                 .addField("main_arm", state.mainArmPosition)
-                .addField("ref_main_arm", ref?.mainArmPosition)
-                .addField("main_arm_re", if (ref != null) Math.abs(state.mainArmPosition - ref.mainArmPosition) else 0.0)
                 .addField("second_arm", state.secondArmPosition)
-                .addField("ref_second_arm", ref?.secondArmPosition)
-                .addField("second_arm_re", if (ref != null) Math.abs(state.secondArmPosition - ref.secondArmPosition) else 0.0)
                 .addField("headMount", state.headMountPosition)
-                .addField("ref_headMount", ref?.headMountPosition)
-                .addField("headMount_re", if (ref != null) Math.abs(state.headMountPosition - ref.headMountPosition) else 0.0)
                 .addField("gripper", state.gripperPosition)
-                .addField("ref_gripper", ref?.gripperPosition)
-                .addField("gripper_re", if (ref != null) Math.abs(state.gripperPosition - ref.gripperPosition) else 0.0)
         val point = if (label != null) {
             pointBuilder.addField("label", label).build()
         } else {
