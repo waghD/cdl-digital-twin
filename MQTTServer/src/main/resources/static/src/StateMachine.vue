@@ -1,7 +1,62 @@
 <style scoped>
 .state-machine {
     font-size: 0.8em;
-    min-height: 50vh;
+    /*min-height: 50vh;*/
+   margin-bottom:20px;
+}
+
+.states-container {
+     border:3px solid;
+    border-radius:5px;
+    padding:0px 20px;   
+}
+span.state-machine-header {
+    font-size: 1.6rem;
+    color: white;
+}
+
+.robotic-arm-state-machine span.state-machine-header {
+    background-color: #1e88e5;
+    padding: 2px 5px;
+}
+
+.robotic-arm-state-machine .machine {
+    border: 3px solid #1e88e5;
+    padding: 0px 20px;
+    border-radius: 3px;
+}
+
+.slider-state-machine span.state-machine-header {
+    background-color: orange;
+    padding: 2px 5px;
+}
+
+.slider-state-machine .machine {
+    border: 3px solid orange;
+    padding: 0px 20px;
+    border-radius: 3px;
+}
+
+.testrig-state-machine span.state-machine-header {
+    background-color: darkgray;
+    padding: 2px 5px;
+}
+
+.testrig-state-machine .machine {
+    border: 3px solid darkgray;
+    padding: 0px 20px;
+    border-radius: 3px;
+}
+
+.conveyor-state-machine span.state-machine-header {
+    background-color: darkgreen;
+    padding: 2px 5px;
+}
+
+.conveyor-state-machine .machine {
+    border: 3px solid darkgreen;
+    padding: 0px 20px;
+    border-radius: 3px;
 }
 
 .dim {
@@ -37,7 +92,12 @@
     text-align: center;
     font-size: 0.6em;
 }
-
+.machine-header {
+    color:white;
+    font-size:1.4rem;
+    padding:5px 10px;
+    border-radius:3px;
+}
 .new i {
     font-size: 4em;
     color: darkslategray;
@@ -50,64 +110,69 @@
 </style>
 <template>
 <div class="state-machine">
-    <div v-if="showPopup" class="dim">
-        <div class="popup">
-            <div v-if="selectedState && !showChoiceSettings">
-                <state-detail :state="selectedState" :socket="socket" :context="context" v-on:close="showPopup = false;" v-on:recordPosition="saveChanges()"></state-detail>
-            </div>
-            <div v-if="showChoiceSettings">
-                <choice-settings :state="selectedState" :followupState="followupState" v-on:recordPosition="saveChanges()" v-on:close="showPopup = false; showChoiceSettings = false;"></choice-settings>
-            </div>
-        </div>
-    </div>
-    <div>
-        <div v-for="(s, index) in job.states" class="row">
-            <div v-if="!s.choices" style="width: 260px; padding-top: 75px;">
-                <state-preview v-on:open="showState(s)" :state="s" :index="index" :active="s.active" :context="context" :socket="socket" v-on:moveLeft="moveLeft($event)" v-on:moveRight="moveRight($event)" v-on:remove="remove($event)" v-on:recordPosition="saveChanges()">
-                </state-preview>
-                <div style="color: darkslategray; display: inline-block; vertical-align: top; margin-left: 20px;">
-                    <i @click="toggleChoice(index)" v-if="!s.choices && index < job.states.length - 1 && !job.states[index + 1].choices" class="material-icons" style="font-size: 3em; position: relative; top: 45px;">arrow_right_alt</i>
-                    <div style="display: inline-block; vertical-align: top;" v-if="index < job.states.length - 1 && job.states[index + 1].choices">
-                        <div><i @click="choiceSettings(s, index)" class="material-icons" style="cursor: default; font-size: 2em; position: relative; top: 15px; left: 5px;">info</i></div>
-                        <div><i @click="toggleChoice(index)" class="material-icons" style="cursor: default; transform: rotate(90deg); font-size: 3em; position: relative; top: 15px;">call_split</i></div>
-                    </div>
+    
+     <span class="machine-header" :style="titleColor">{{machineName}}</span>
+    
+    <div class="states-container" :style="borderColor">
+        <div v-if="showPopup" class="dim">
+            <div class="popup">
+                <div v-if="selectedState && !showChoiceSettings">
+                    <state-detail :state="selectedState" :socket="socket" :context="context" v-on:close="showPopup = false;" v-on:recordPosition="saveChanges()"></state-detail>
                 </div>
-            </div>
-            <div v-if="s.choices">
-                <div style="display: inline-block; vertical-align: top; margin-right: -40px;">
-                    <div>
-                        <div v-for="(s1, i1) in s.choices.first" style="display: inline-block; vertical-align: top; width: 260px;">
-                            <state-preview v-on:open="showState(s1)" :state="s1" :index="i1" :active="s1.active" :context="context" :socket="socket" v-on:moveLeft="moveLeftChoice(s.choices.first, $event)" v-on:moveRight="moveRightChoice(s.choices.first,
-                    $event)" v-on:remove="removeChoice(s, s.choices.first, $event, index)" v-on:recordPosition="saveChanges()">
-                            </state-preview>
-                            <div v-if="i1 < s.choices.first.length - 1" style="display: inline; position: relative; left: 20px; top: 44px;">
-                                <i class="material-icons" style="font-size: 3em; color: darkslategrey;">arrow_right_alt</i>
-                            </div>
-                            <button class="new" style="position: relative; top: 45px; left: 20px;" v-if="i1 == s.choices.first.length - 1 && index == job.states.length - 1" @click="addStateChoice(s.choices.first)"><i class="material-icons">add</i></button>
-                        </div>
-                    </div>
-                    <div>
-                        <div v-for="(s2, i2) in s.choices.second" style="display: inline-block; vertical-align: top; width: 260px;">
-                            <state-preview v-on:open="showState(s2)" :state="s2" :index="i2" :active="s2.active" :context="context" :socket="socket" v-on:moveLeft="moveLeftChoice(s.choices.second, $event)" v-on:moveRight="moveRightChoice(s.choices.second,
-                    $event)" v-on:remove="removeChoice(s, s.choices.second, $event, index)" v-on:recordPosition="saveChanges()">
-                            </state-preview>
-                            <div v-if="i2 < s.choices.second.length - 1" style="display: inline; position: relative; left: 20px; top: 44px;">
-                                <i class="material-icons" style="font-size: 3em; color: darkslategrey;">arrow_right_alt</i>
-                            </div>
-                            <button class="new" style="position: relative; top: 45px; left: 20px;" v-if="i2 == s.choices.second.length - 1  && index == job.states.length - 1" @click="addStateChoice(s.choices.second)"><i class="material-icons">add</i></button>
-                        </div>
-                    </div>
-                </div>
-                <div style="display: inline-block; position: relative; top: 115px; left: -20px;">
-                    <i class="material-icons" style="font-size: 34px; color: darkslategrey; transform: rotate(90deg);">call_merge</i>
+                <div v-if="showChoiceSettings">
+                    <choice-settings :state="selectedState" :followupState="followupState" v-on:recordPosition="saveChanges()" v-on:close="showPopup = false; showChoiceSettings = false;"></choice-settings>
                 </div>
             </div>
         </div>
-        <button @click="addState()" class="new" style="margin-top: 120px;">
-        <i class="material-icons">add</i>
-    </button>
+        <div>
+            <div v-for="(s, index) in job[stateGroup]" class="row">
+                <div v-if="!s.choices" style="width: 260px; padding-top: 75px;">
+                    <state-preview v-on:open="showState(s)" :state="s" :index="index" :active="s.active" :context="context" :socket="socket" v-on:moveLeft="moveLeft($event)" v-on:moveRight="moveRight($event)" v-on:remove="remove($event)" v-on:recordPosition="saveChanges()">
+                    </state-preview>
+                    <div style="color: darkslategray; display: inline-block; vertical-align: top; margin-left: 20px;">
+                        <i @click="toggleChoice(index)" v-if="!s.choices && index < job[stateGroup].length - 1 && !job[stateGroup][index + 1].choices" class="material-icons" style="font-size: 3em; position: relative; top: 45px;">arrow_right_alt</i>
+                        <div style="display: inline-block; vertical-align: top;" v-if="index < job[stateGroup].length - 1 && job[stateGroup][index + 1].choices">
+                            <div><i @click="choiceSettings(s, index)" class="material-icons" style="cursor: default; font-size: 2em; position: relative; top: 15px; left: 5px;">info</i></div>
+                            <div><i @click="toggleChoice(index)" class="material-icons" style="cursor: default; transform: rotate(90deg); font-size: 3em; position: relative; top: 15px;">call_split</i></div>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="s.choices">
+                    <div style="display: inline-block; vertical-align: top; margin-right: -40px;">
+                        <div>
+                            <div v-for="(s1, i1) in s.choices.first" style="display: inline-block; vertical-align: top; width: 260px;">
+                                <state-preview v-on:open="showState(s1)" :state="s1" :index="i1" :active="s1.active" :context="context" :socket="socket" v-on:moveLeft="moveLeftChoice(s.choices.first, $event)" v-on:moveRight="moveRightChoice(s.choices.first,
+                        $event)" v-on:remove="removeChoice(s, s.choices.first, $event, index)" v-on:recordPosition="saveChanges()">
+                                </state-preview>
+                                <div v-if="i1 < s.choices.first.length - 1" style="display: inline; position: relative; left: 20px; top: 44px;">
+                                    <i class="material-icons" style="font-size: 3em; color: darkslategrey;">arrow_right_alt</i>
+                                </div>
+                                <button class="new" style="position: relative; top: 45px; left: 20px;" v-if="i1 == s.choices.first.length - 1 && index == job[stateGroup].length - 1" @click="addStateChoice(s.choices.first)"><i class="material-icons">add</i></button>
+                            </div>
+                        </div>
+                        <div>
+                            <div v-for="(s2, i2) in s.choices.second" style="display: inline-block; vertical-align: top; width: 260px;">
+                                <state-preview v-on:open="showState(s2)" :state="s2" :index="i2" :active="s2.active" :context="context" :socket="socket" v-on:moveLeft="moveLeftChoice(s.choices.second, $event)" v-on:moveRight="moveRightChoice(s.choices.second,
+                        $event)" v-on:remove="removeChoice(s, s.choices.second, $event, index)" v-on:recordPosition="saveChanges()">
+                                </state-preview>
+                                <div v-if="i2 < s.choices.second.length - 1" style="display: inline; position: relative; left: 20px; top: 44px;">
+                                    <i class="material-icons" style="font-size: 3em; color: darkslategrey;">arrow_right_alt</i>
+                                </div>
+                                <button class="new" style="position: relative; top: 45px; left: 20px;" v-if="i2 == s.choices.second.length - 1  && index == job[stateGroup].length - 1" @click="addStateChoice(s.choices.second)"><i class="material-icons">add</i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: inline-block; position: relative; top: 115px; left: -20px;">
+                        <i class="material-icons" style="font-size: 34px; color: darkslategrey; transform: rotate(90deg);">call_merge</i>
+                    </div>
+                </div>
+            </div>
+            <button @click="addState()" class="new" style="margin-top: 120px;">
+            <i class="material-icons">add</i>
+        </button>
+        </div>
+        </div> 
     </div>
-</div>
 </div>
 </template>
 
@@ -118,7 +183,17 @@ import ChoiceSettings from "./ChoiceSettings.vue";
 import Vue from "vue";
 
 export default {
-    props: ["job", "context", "socket"],
+    props: ["job", "stateGroup", "color", "machineName", "context", "socket"],
+    computed: {
+         titleColor() {
+            return 'background-color: ' + this.color;
+        },
+        borderColor() {
+            return 'border-color: ' + this.color;
+        }
+
+       
+    },
     components: {
         statePreview: StatePreview,
         stateDetail: StateDetail,
@@ -134,15 +209,20 @@ export default {
             selectedTransition: null
         }
     },
+    
     mounted() {
         var self = this;
+         
         this.socket.addEventListener("message", function(event) {
             let msg = JSON.parse(event.data);
-            console.log(msg);
+
+           
             if (msg.topic === "state") {
+                console.log("Message:");
+                console.log(msg.message);
                 let name = msg.message
                 let jobs = [];
-                for (let j of self.job.states) {
+                for (let j of self.job[self.stateGroup]) {
                     if (j.type === 'BasicState') {
                         jobs.push(j)
                     } else {
@@ -154,7 +234,7 @@ export default {
                     if (x.name === name) {
                         console.log(name)
                         x.active = true;
-                    } else {
+                    } else {    
                         x.active = false;
                     }
                     self.$forceUpdate();

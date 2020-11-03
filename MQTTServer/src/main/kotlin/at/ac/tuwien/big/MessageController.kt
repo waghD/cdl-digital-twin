@@ -45,7 +45,7 @@ class MessageController(private val mqtt: MQTT,
     }
 
     fun start() {
-        timer.schedule(0, 2000) {
+        timer.schedule(0, 1000) {
             observe()
         }
 
@@ -64,7 +64,8 @@ class MessageController(private val mqtt: MQTT,
                     val tracking = it.firstOrNull()
                     val detected = tracking != null
                     val inPickupWindow = tracking != null && 36 < tracking.x && tracking.x < 125 && 60 < tracking.y && tracking.y < 105
-                    StateObserver.update(ConveyorState(detected = detected, inPickupWindow = inPickupWindow))
+                    StateObserver.cameraState.pickupDetected = detected
+                    StateObserver.cameraState.testRigDetected = inPickupWindow
                     val base64 = Base64.getEncoder().encodeToString(stream.toByteArray())
                     sendWebSocketMessagePickupCamera("{\"image\": \"$base64\", \"tracking\": ${gson.toJson(it)}}")
                     file.delete()
@@ -112,7 +113,9 @@ class MessageController(private val mqtt: MQTT,
                     val tracking = it.firstOrNull()
                     val detected = tracking != null
                     val inPickupWindow = tracking != null && 36 < tracking.x && tracking.x < 125 && 60 < tracking.y && tracking.y < 105
-                    StateObserver.update(ConveyorState(detected = detected, inPickupWindow = inPickupWindow))
+                    StateObserver.cameraState.pickupDetected = detected
+                    StateObserver.cameraState.testRigDetected = inPickupWindow
+
                     sendWebSocketMessagePickupCamera("{\"image\": \"$message\", \"tracking\": ${gson.toJson(it)}}")
                     pickup.delete()
                 }

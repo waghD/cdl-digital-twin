@@ -111,7 +111,12 @@ article {
                         <a @mouseleave="downloadLink = ''" v-if="downloadLink" :download="selectedJob.name + '.json'" :href="downloadLink" style="margin-left: 20px;">Download Job</a>
                     </div>
                 </div>
-                <state-machine :job="selectedJob" :context="context" :socket="socket"></state-machine>
+                <state-machine :job="selectedJob" :stateGroup="'roboticArmStates'" :color="'#343a40'" :machineName="'RoboticArm'" :context="context" :socket="socket"></state-machine>
+                <state-machine :job="selectedJob" :stateGroup="'sliderStates'" :color="'#343a40'" :machineName="'Slider'" :context="context" :socket="socket"></state-machine>
+                <state-machine :job="selectedJob" :stateGroup="'conveyorStates'" :color="'#343a40'" :machineName="'Conveyor'" :context="context" :socket="socket"></state-machine>
+                <state-machine :job="selectedJob" :stateGroup="'testingRigStates'" :color="'#343a40'" :machineName="'TestRig'" :context="context" :socket="socket"></state-machine>
+
+
             </div>
         </div>
     </main>

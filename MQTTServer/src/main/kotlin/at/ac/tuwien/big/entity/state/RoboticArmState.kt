@@ -1,11 +1,14 @@
 package at.ac.tuwien.big.entity.state
 
+import at.ac.tuwien.big.sm.Dependencies
+
 /**
  * State of the robotic arm
  */
 data class RoboticArmState(
         override var name: String = "Snapshot",
         override var entity: String = "RoboticArm",
+        override var dependencies: Dependencies = Dependencies(),
         var basePosition: Double = 0.0,
         var mainArmPosition: Double = 0.0,
         var secondArmPosition: Double = 0.0,

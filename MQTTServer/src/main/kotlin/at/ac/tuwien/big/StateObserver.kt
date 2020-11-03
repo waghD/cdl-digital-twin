@@ -16,6 +16,11 @@ object StateObserver : Observable<BasicState>() {
      */
     var stateMachines: MutableList<StateMachine>? = null
 
+    /*
+     * Current camera states in environments for detection of objects
+     * on conveyor and test rig
+     */
+    var cameraState: CameraState = CameraState()
 
     /**
      * Most recently observed state
@@ -58,12 +63,12 @@ object StateObserver : Observable<BasicState>() {
                 snapshot = snapshot.copy(sliderState = e)
             }
             is ConveyorState -> {
-                val c = snapshot.conveyorState ?: ConveyorState()
+               /* val c = snapshot.conveyorState ?: ConveyorState()
                 val cNew = c.copy(
                         adjusterPosition = e.adjusterPosition ?: c.adjusterPosition,
                         detected = e.detected ?: c.detected,
-                        inPickupWindow = e.inPickupWindow ?: c.inPickupWindow)
-                snapshot = snapshot.copy(conveyorState = cNew)
+                        inPickupWindow = e.inPickupWindow ?: c.inPickupWindow)*/
+                snapshot = snapshot.copy(conveyorState = e)
             }
             is TestingRigState -> {
                 val t = snapshot.testingRigState ?: TestingRigState()
@@ -79,16 +84,20 @@ object StateObserver : Observable<BasicState>() {
 
         StateObserver.stateMachines?.forEach {sm ->
             val match = matchState(snapshot, sm)
+            if (match != null && latestMatches[sm.name] != match ) {
+                /* Check if this newly matched stated satisfies all constraints assigned to it
+                * If satisfied, can transition into this new state */
+                if ( match.first.isSatisfied(latestMatches, cameraState)) {
+                    latestMatches[sm.name] = match
+                    notify(latestMatches[sm.name]?.first ?: BasicState())
+                }
 
-            if (match != null && latestMatches[sm.name] != match) {
-                println("match:")
-                print(match)
-                latestMatches[sm.name] = match
-                notify(latestMatches[sm.name]?.first ?: BasicState())
             }
         }
 
     }
+
+
 
     /**
      * Return the defined successor state of the latest matching state, according to the state machine
@@ -97,8 +106,6 @@ object StateObserver : Observable<BasicState>() {
         val successor = stateMachine?.successor(latestMatches[stateMachine.name]?.first ?: BasicState(), latestMatches[stateMachine.name]?.second)
         return if (successor != null) {
             targetStates[stateMachine.name] = successor
-          //  print("Successor: ")
-          //  println(successor)
             val isSecond = latestMatches[stateMachine.name]?.second ?: false
 
             val env = if (isSecond) {
@@ -106,8 +113,6 @@ object StateObserver : Observable<BasicState>() {
             } else {
                 latestMatches[stateMachine.name]?.first?.altEnvironment!!
             }
-          //  print("latestMatch: ")
-          //  println(latestMatch)
 
             val succ = successor.environment
 
@@ -132,7 +137,6 @@ object StateObserver : Observable<BasicState>() {
             if (succ.sliderState != null) {
                 result.add(SliderTransition(env.sliderState ?: SliderState(), succ.sliderState))
             }*/
-
             return result
         } else {
             emptyList()

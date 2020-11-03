@@ -35,8 +35,7 @@
       "type": "BasicState",
       "environment": {
         "conveyorState": {
-          "adjusterPosition": 1.67,
-          "detected": true
+          "adjusterPosition": 1.67
         }
       }
     }
@@ -152,6 +151,10 @@
           "headMountPosition": 0.0,
           "gripperPosition": 0.0
         }
+
+      },
+      "dependencies": {
+         "pickupDetected": true
       }
     }, {
       "name": "Drive Down Robo",
@@ -165,6 +168,7 @@
           "gripperPosition": 1.5
         }
       }
+
     }, {
       "name": "Pickup Robo",
       "type": "BasicState",

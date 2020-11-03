@@ -32,10 +32,9 @@ class JobController {
                                 .registerSubtype(ChoiceState::class.java, "ChoiceState")
                 )
                 .create()
+
         //Map read-in jobs to Job objects within a list
         jobs = gson.fromJson<List<Job>>(jobsText, jobsType).map { Pair(it.id, it) }.toMap().toMutableMap()
-       /* println("Jobs.values in JobController:")
-        println(jobs.values)*/
         selected = jobs.values.first()
     }
 
