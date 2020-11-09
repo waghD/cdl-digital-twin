@@ -170,7 +170,6 @@ span.state-machine-header {
             <button @click="addState()" class="new" style="margin-top: 120px;">
             <i class="material-icons">add</i>
         </button>
-        </div>
         </div> 
     </div>
 </div>
@@ -244,8 +243,8 @@ export default {
     },
     methods: {
         toggleChoice(index) {
-            var state = this.job.states[index + 1];
-            var prevState = this.job.states[index];
+            var state = this.job[this.stateGroup][index + 1];
+            var prevState = this.job[this.stateGroup][index];
             if (!state.choices) {
                 state.type = "ChoiceState"
                 var choices = {
@@ -269,7 +268,7 @@ export default {
                     environment: state.environment
                 });
                 state.choices.second.push({
-                    name: "New " + (this.job.states.length + 1),
+                    name: "New " + (this.job[this.stateGroup].length + 1),
                     type: "BasicState",
                     environment: Object.assign({}, state.environment)
                 });
@@ -285,13 +284,13 @@ export default {
         },
         choiceSettings(s, i) {
             this.selectedState = s;
-            this.followupState = this.job.states[i + 1];
+            this.followupState = this.job[this.stateGroup][i + 1];
             this.showPopup = true;
             this.showChoiceSettings = true;
         },
         addState() {
-            this.job.states.push({
-                name: "New " + (this.job.states.length + 1),
+            this.job[this.stateGroup].push({
+                name: "New " + (this.job[this.stateGroup].length + 1),
                 type: "BasicState",
                 environment: {
                     roboticArmState: null,
@@ -315,10 +314,10 @@ export default {
         moveLeft(i) {
             event.stopPropagation()
             if (i - 1 < 0) return;
-            var elem = this.job.states[i];
-            var right = this.job.states[i - 1];
-            this.job.states.splice(i, 1, right)
-            this.job.states.splice(i - 1, 1, elem)
+            var elem = this.job[this.stateGroup][i];
+            var right = this.job[this.stateGroup][i - 1];
+            this.job[this.stateGroup].splice(i, 1, right)
+            this.job[this.stateGroup].splice(i - 1, 1, elem)
             this.$emit('changes')
             this.saveChanges();
         },
@@ -335,11 +334,11 @@ export default {
         },
         moveRight(i) {
             event.stopPropagation()
-            if (i + 1 > this.job.states.length - 1) return;
-            var elem = this.job.states[i];
-            var right = this.job.states[i + 1];
-            this.job.states.splice(i, 1, right)
-            this.job.states.splice(i + 1, 1, elem)
+            if (i + 1 > this.job[this.stateGroup].length - 1) return;
+            var elem = this.job[this.stateGroup][i];
+            var right = this.job[this.stateGroup][i + 1];
+            this.job[this.stateGroup].splice(i, 1, right)
+            this.job[this.stateGroup].splice(i + 1, 1, elem)
             this.$emit('changes')
             this.saveChanges();
         },
@@ -356,7 +355,7 @@ export default {
         },
         remove(i) {
             event.stopPropagation()
-            this.job.states.splice(i, 1);
+            this.job[this.stateGroup].splice(i, 1);
             this.$emit('changes')
             this.saveChanges();
         },
@@ -369,9 +368,9 @@ export default {
                 } else {
                     var c = s.choices.first
                 }
-                this.job.states.splice(globalIndex, 1);
+                this.job[this.stateGroup].splice(globalIndex, 1);
                 for (var a = 0; a < c.length; a++) {
-                    this.job.states.splice(globalIndex + a, 0, c[a])
+                    this.job[this.stateGroup].splice(globalIndex + a, 0, c[a])
                 }
             }
 
@@ -392,8 +391,8 @@ export default {
         },
         showTransition(index) {
             this.showPopup = true;
-            var first = this.job.states[index]
-            var second = this.job.states[index + 1]
+            var first = this.job[this.stateGroup][index]
+            var second = this.job[this.stateGroup][index + 1]
             this.selectedState = null;
             this.selectedTransition = {
                 first: first,
