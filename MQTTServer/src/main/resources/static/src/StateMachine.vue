@@ -118,7 +118,7 @@ span.state-machine-header {
         <div v-if="showPopup" class="dim">
             <div class="popup">
                 <div v-if="selectedState && !showChoiceSettings">
-                    <state-detail :state="selectedState" :socket="socket" :context="context" v-on:close="showPopup = false;" v-on:recordPosition="saveChanges()"></state-detail>
+                    <state-detail :state="selectedState" :socket="socket" :context="context" :possibleDependecies="possibleDependencyStates" v-on:close="showPopup = false;" v-on:recordPosition="saveChanges()"></state-detail>
                 </div>
                 <div v-if="showChoiceSettings">
                     <choice-settings :state="selectedState" :followupState="followupState" v-on:recordPosition="saveChanges()" v-on:close="showPopup = false; showChoiceSettings = false;"></choice-settings>
@@ -206,8 +206,30 @@ export default {
             showChoiceSettings: false,
             selectedState: null,
             followupState: null,
-            selectedTransition: null
+            selectedTransition: null,
+            possibleDependencyStates: []
         }
+    },
+
+    watch: {
+      job(val) {
+        const possibleDependencies = [];
+        if(val) {
+
+          for(const key in val) {
+            if(key !== this.stateGroup && val[key] instanceof Array && val.hasOwnProperty(key)) {
+              const stateNames = val[key].map(state => state.name);
+              possibleDependencies.push(...stateNames);
+            }
+          }
+        }
+
+        possibleDependencies.push('testRigDetected', 'pickupDetected');
+
+        console.log('possible Dependencies: ', possibleDependencies);
+
+        this.possibleDependencyStates = possibleDependencies;
+      }
     },
     
     mounted() {
