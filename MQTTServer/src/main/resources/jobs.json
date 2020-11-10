@@ -56,6 +56,9 @@
       "sliderState": {
         "sliderPosition": 0.42
       }
+    },
+    "dependencies": {
+      "pickupDetected": false
     }
   }, {
     "name": "Slider Home Slider",
@@ -98,6 +101,9 @@
       "testingRigState": {
         "objectCategory": "RED"
       }
+    },
+    "dependencies": {
+      "testRigDetected": true
     }
   }
   ],
@@ -167,6 +173,9 @@
           "headMountPosition": 0.0,
           "gripperPosition": 1.5
         }
+      },
+      "dependencies": {
+        "pickupDetected": true
       }
 
     }, {
@@ -180,6 +189,9 @@
           "headMountPosition": 0.0,
           "gripperPosition": -0.40
         }
+      },
+      "dependencies": {
+        "pickupDetected": true
       }
     }, {
       "name": "Lift Robo",
@@ -204,6 +216,9 @@
           "headMountPosition": -1.5,
           "gripperPosition": -0.40
         }
+      },
+      "dependencies": {
+        "testRigDetected": false
       }
     }, {
       "name": "Half Release Robo",
@@ -216,6 +231,9 @@
           "headMountPosition": -1.5,
           "gripperPosition": -0.2
         }
+      },
+      "dependencies": {
+        "Drive Down TRS": true
       }
     }, {
       "name": "Full Release Robo",
@@ -238,6 +256,9 @@
           "headMountPosition": -1.5,
           "gripperPosition": 1.0
         }
+      },
+      "dependencies": {
+        "Drive Down TRS": true
       }
     }
   ]
