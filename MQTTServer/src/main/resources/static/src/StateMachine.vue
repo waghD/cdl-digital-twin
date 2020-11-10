@@ -74,13 +74,14 @@ span.state-machine-header {
 .popup {
     position: fixed;
     padding: 20px;
-    top: 20vw;
-    left: 30vw;
+    top: 50%;
+    left: 50%;
     width: 40vw;
-    height: 440px;
+    height: 50vh;
     background: white;
     border-radius: 10px;
     z-index: 11;
+    transform: translate(-50%, -50%);
 }
 
 .new {
