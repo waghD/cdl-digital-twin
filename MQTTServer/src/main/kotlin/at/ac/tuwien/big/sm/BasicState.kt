@@ -26,8 +26,8 @@ data class BasicState(
         val stateDependencies = this.dependencies.states
 
         /* Camera dependencies */
-        if (pickupDetected != null && pickupDetected && cameraState.pickupDetected != pickupDetected) return false
-        if (testRigDetected != null && testRigDetected && cameraState.testRigDetected != testRigDetected) return false
+        if (pickupDetected != null && cameraState.pickupDetected != pickupDetected) return false
+        if (testRigDetected != null && cameraState.testRigDetected != testRigDetected) return false
 
         /* State dependencies */
         if(stateDependencies != null && stateDependencies.isNotEmpty()) {

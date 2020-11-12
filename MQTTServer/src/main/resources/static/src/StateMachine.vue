@@ -1,4 +1,15 @@
 <style scoped>
+
+.panel {
+  display: block;
+  overflow: hidden;
+}
+
+.accordion {
+  cursor: pointer;  
+  transition: 0.4s;
+}
+
 .state-machine {
     font-size: 0.8em;
     /*min-height: 50vh;*/
@@ -112,13 +123,13 @@ span.state-machine-header {
 <template>
 <div class="state-machine">
     
-     <span class="machine-header" :style="titleColor">{{machineName}}</span>
+     <span class="machine-header accordion" :style="titleColor" @click="accordionHandler">{{machineName}}</span>
     
-    <div class="states-container" :style="borderColor">
+    <div class="states-container panel" :style="borderColor">
         <div v-if="showPopup" class="dim">
             <div class="popup">
                 <div v-if="selectedState && !showChoiceSettings">
-                    <state-detail :state="selectedState" :socket="socket" :context="context" :possibleDependecies="possibleDependencyStates" v-on:close="showPopup = false;" v-on:recordPosition="saveChanges()"></state-detail>
+                    <state-detail :state="selectedState" :stateGroup="stateGroup" :socket="socket" :context="context" :possibleDependecies="possibleDependencyStates" v-on:close="showPopup = false;" v-on:recordPosition="saveChanges()"></state-detail>
                 </div>
                 <div v-if="showChoiceSettings">
                     <choice-settings :state="selectedState" :followupState="followupState" v-on:recordPosition="saveChanges()" v-on:close="showPopup = false; showChoiceSettings = false;"></choice-settings>
@@ -213,15 +224,18 @@ export default {
 
     watch: {
       job(val) {
-        const possibleDependencies = [];
-        if(val) {
+        
+      }
+    },
 
-          for(const key in val) {
-            if(key !== this.stateGroup && val[key] instanceof Array && val.hasOwnProperty(key)) {
-              const stateNames = val[key].map(state => state.name);
+    created() {
+        const possibleDependencies = [];
+
+        for(const key in this.job) {
+            if(key !== this.stateGroup && this.job[key] instanceof Array && this.job.hasOwnProperty(key)) {
+              const stateNames = this.job[key].map(state => state.name);
               possibleDependencies.push(...stateNames);
             }
-          }
         }
 
         possibleDependencies.push('testRigDetected', 'pickupDetected');
@@ -229,42 +243,62 @@ export default {
         console.log('possible Dependencies: ', possibleDependencies);
 
         this.possibleDependencyStates = possibleDependencies;
-      }
     },
-    
+
     mounted() {
         var self = this;
-         
+        console.log("MOUNTED");
         this.socket.addEventListener("message", function(event) {
             let msg = JSON.parse(event.data);
 
-           
+
             if (msg.topic === "state") {
-                console.log("Message:");
-                console.log(msg.message);
                 let name = msg.message
-                let jobs = [];
-                for (let j of self.job[self.stateGroup]) {
-                    if (j.type === 'BasicState') {
-                        jobs.push(j)
-                    } else {
-                        jobs = jobs.concat(j.choices.first)
-                        jobs = jobs.concat(j.choices.second)
+                
+                // Grab relevant states for this machinery by checking with stateGroup
+                let groupStatesNames = []
+                self.job[self.stateGroup].forEach(state => { 
+                    groupStatesNames.push(state.name);
+                })
+
+                if (groupStatesNames.includes(name)) {
+                    console.log(self.stateGroup + ": " + name)
+                    let jobs = [];
+                    for (let j of self.job[self.stateGroup]) {
+                        if (j.type === 'BasicState') {
+                            jobs.push(j)
+                        } else {
+                            jobs = jobs.concat(j.choices.first)
+                            jobs = jobs.concat(j.choices.second)
+                        }
                     }
+
+                    jobs.forEach(function(x) {
+                        if (x.name === name) {
+                            x.active = true;
+                        } else {    
+                            x.active = false;
+                        }
+                        self.$forceUpdate();
+                    });
                 }
-                jobs.forEach(function(x) {
-                    if (x.name === name) {
-                        console.log(name)
-                        x.active = true;
-                    } else {    
-                        x.active = false;
-                    }
-                    self.$forceUpdate();
-                });
+             
             }
         });
     },
     methods: {
+
+        accordionHandler(e) {
+            let panel = e.target.nextElementSibling;
+             if (panel.style.display === "block") {
+                panel.style.display = "none";
+            } else {
+                panel.style.display = "block";
+            }
+
+
+        },
+
         toggleChoice(index) {
             var state = this.job[this.stateGroup][index + 1];
             var prevState = this.job[this.stateGroup][index];

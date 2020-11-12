@@ -252,20 +252,28 @@ class WebController(private val mqtt: MQTT,
              */
             put("/jobs/:id") { ctx ->
                 run {
-                   /* try {
+                    try {
                         val id = ctx.param("id") ?: ""
                         val job = jobController.getJob(id)
                         if (job != null) {
                             val newJob = gson.fromJson(ctx.body(), Job::class.java)
+                            println("newjob:")
+                            println(newJob)
                             jobController.setJob(newJob)
-                            StateObserver.stateMachine = StateMachine(newJob.states)
+
+                            StateObserver.stateMachines = mutableListOf(
+                                    StateMachine("roboticArm", newJob.roboticArmStates),
+                                    StateMachine("conveyor",newJob.conveyorStates),
+                                    StateMachine("testingRig",newJob.testingRigStates),
+                                    StateMachine("slider",newJob.sliderStates)
+                            )
                             ctx.status(200)
                         } else {
                             ctx.status(404)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
-                    }*/
+                    }
                 }
             }
 
@@ -321,6 +329,7 @@ class WebController(private val mqtt: MQTT,
              */
             put("/reset") { ctx ->
                 run {
+                    println("got request")
                     messageController.autoPlay = false
                     messageController.reset()
                     ctx.status(200)

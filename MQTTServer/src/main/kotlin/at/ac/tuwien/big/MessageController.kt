@@ -158,6 +158,7 @@ class MessageController(private val mqtt: MQTT,
                     StateObserver.latestMatches.forEach {
                         sendWebSocketMessageContext(gson.toJson(it.value))
 
+
                     }
                    // val context = StateObserver.latestMatch
                     //sendWebSocketMessageContext(gson.toJson(context))
@@ -175,30 +176,35 @@ class MessageController(private val mqtt: MQTT,
     fun reset() {
 
        // val latest = StateObserver.latestMatch.first
-        val formerTarget = StateObserver.targetStates["roboticArm"]
+       // val formerTarget = StateObserver.targetStates["roboticArm"]
         val transitions = mutableListOf<Transition>()
         StateObserver.stateMachines?.forEach {
             transitions.addAll(StateObserver.reset(it))
         }
-        val nowInTransition = formerTarget?.environment?.roboticArmState != StateObserver.targetStates["roboticArm"]?.environment?.roboticArmState
+
+       // val nowInTransition = formerTarget?.environment?.roboticArmState != StateObserver.targetStates["roboticArm"]?.environment?.roboticArmState
 
         for (transition in transitions) {
-            if (!lastInTransition && nowInTransition) {
-            }
+            /*if (!lastInTransition && nowInTransition) {
+            }*/
             StateObserver.latestMatches.forEach {
                 sendWebSocketMessageContext(gson.toJson(it.value))
-
+                println("gson.toJson(it.value)")
+                println(gson.toJson(it.value))
             }
+
             //val context = StateObserver.latestMatch
 
             //sendWebSocketMessageContext(gson.toJson(context))
             val commands = StateObserver.transform(transition)
+
+
             for (c in commands) {
 
                 mqtt.send(c)
             }
         }
-        lastInTransition = nowInTransition
+        //lastInTransition = nowInTransition
     }
 
     private fun parse(payload: String): StateEvent {

@@ -218,11 +218,12 @@ export default {
             try {
                 self.jobs = JSON.parse(this.responseText)
             } catch (err) {
-                console.log("error")
+                console.log("error on created")
             }
             self.selectedJob = self.jobs[0]
         }
-        xhr.open("GET", 'http://localhost:8080/jobs', true);
+        
+        xhr.open("GET", 'http://localhost:8080/jobs', false);
         xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
         xhr.send();
         this.socket.addEventListener("open", function(event) {

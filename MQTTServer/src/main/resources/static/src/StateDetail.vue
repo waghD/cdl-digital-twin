@@ -94,7 +94,7 @@ input {
     <button class="toggleButton" @click="showDependecies = !showDependecies">Toggle Dependencies</button>
   </div>
   <div class="main-card-area" v-if="!showDependecies">
-    <div class="third">
+    <div class="third" v-if="stateGroup == 'testingRigStates'">
       <h2>Testing Rig <input type="checkbox" v-model="testingRig"></h2>
       <div v-bind:class="{ disabled: !testingRig}">
         <h3>Sensors</h3>
@@ -109,7 +109,7 @@ input {
         <p>Plate Temp.: <input type="number" step="0.1" style="width: 45px;" v-if="testingRig" v-model="state.environment.testingRigState.heatplateTemperature">°C</p>
       </div>
     </div>
-    <div class="third">
+    <div class="third" v-if="stateGroup == 'roboticArmStates'">
       <h2>Robotic Arm</h2>
       <div v-bind:class="{ disabled: !roboticArm}">
         <h3>Actuators</h3>
@@ -129,7 +129,7 @@ input {
         </div>
       </div>
     </div>
-    <div class="third">
+    <div class="third" v-if="stateGroup == 'conveyorStates'">
       <h2>Conveyor <input type="checkbox" v-model="conveyor"></h2>
       <div v-bind:class="{ disabled: !conveyor}">
         <h3>Sensors</h3>
@@ -153,6 +153,7 @@ input {
     <div class="dependency-row">
       <select class="dependency-select" v-model="newDependencyModel">
         <option value="-1">Choose Dependency</option>
+        
         <option v-for="(possDep, index) in possibleDependecies" v-bind:value="index">{{ possDep }}</option>
       </select>
 
@@ -179,7 +180,7 @@ export default {
     components: {
         keyControls: KeyControls
     },
-    props: ["state", "context", "socket", "possibleDependecies"],
+    props: ["state", "stateGroup", "context", "socket", "possibleDependecies"],
     data() {
         return {
             testingRig: this.state.environment.testingRigState != null,

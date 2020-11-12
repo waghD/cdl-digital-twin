@@ -90,6 +90,10 @@ object StateObserver : Observable<BasicState>() {
                 if ( match.first.isSatisfied(latestMatches, cameraState)) {
                     latestMatches[sm.name] = match
                     notify(latestMatches[sm.name]?.first ?: BasicState())
+                } else {
+                    println(                    match.first.name
+                    )
+                    println("Not satisfied yet")
                 }
 
             }
@@ -154,8 +158,8 @@ object StateObserver : Observable<BasicState>() {
             when (stateMachine.name) {
                 "roboticArm" -> listOf(RoboticArmTransition(RoboticArmState(), env.roboticArmState ?: RoboticArmState()))
                 "conveyor" ->  listOf( ConveyorTransition(ConveyorState(), env.conveyorState ?: ConveyorState()))
-                "testingRig" -> listOf(SliderTransition(SliderState(), env.sliderState ?: SliderState()))
-                "slider" ->  listOf(TestingRigTransition(TestingRigState(), env.testingRigState ?: TestingRigState()))
+                "slider" -> listOf(SliderTransition(SliderState(), env.sliderState ?: SliderState()))
+                "testingRig" ->  listOf(TestingRigTransition(TestingRigState(), env.testingRigState ?: TestingRigState()))
                 else -> emptyList()
             }
            /* listOf(
