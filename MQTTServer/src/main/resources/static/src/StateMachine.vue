@@ -228,17 +228,44 @@ export default {
       }
     },
 
-    created() {
+   created() {
         const possibleDependencies = [];
-
+        
+        var count = 0;
         for(const key in this.job) {
             if(key !== this.stateGroup && this.job[key] instanceof Array && this.job.hasOwnProperty(key)) {
+                
               const stateNames = this.job[key].map(state => state.name);
-              possibleDependencies.push(...stateNames);
+              let states = []
+              stateNames.forEach(sName => {
+                  states.push({
+                      name: sName,
+                      index: count++
+                  });
+              })
+
+              
+              possibleDependencies.push({
+                stateGroup: key,
+                states: states
+              });
             }
         }
+        
+        possibleDependencies.push({
+            stateGroup: "cameraStates",
+            states: [
+                {
+                    name: 'testRigDetected',
+                    index: count++
+                },
+                {
+                    name: 'pickupDetected',
+                    index: count++
+                }
+            ]    
+        });
 
-        possibleDependencies.push('testRigDetected', 'pickupDetected');
 
         console.log('possible Dependencies: ', possibleDependencies);
 
@@ -368,6 +395,7 @@ export default {
             });
             this.$forceUpdate();
         },
+
         moveLeft(i) {
             event.stopPropagation()
             if (i - 1 < 0) return;

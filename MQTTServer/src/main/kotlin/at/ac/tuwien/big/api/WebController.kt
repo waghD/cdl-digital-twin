@@ -162,7 +162,7 @@ class WebController(private val mqtt: MQTT,
             /**
              * Get all states
              */
-            get("/all") { ctx ->/* ctx.json(StateObserver.stateMachine?.states!!)*/  }
+            get("/all") { ctx -> /*ctx.json(StateObserver.stateMachine?.states!!)*/  }
 
             /**
              * Get the current robotic arm state
@@ -282,13 +282,20 @@ class WebController(private val mqtt: MQTT,
              * @return a generated id for the job
              */
             post("/jobs") { ctx ->
-                /*
+
                 run {
                     val newJob = gson.fromJson(ctx.body(), Job::class.java)
                     val id = jobController.addJob(newJob)
-                    StateObserver.stateMachine = StateMachine(newJob.states)
+
+                    StateObserver.stateMachines = mutableListOf(
+                            StateMachine("roboticArm", newJob.roboticArmStates),
+                            StateMachine("conveyor", newJob.conveyorStates),
+                            StateMachine("testingRig", newJob.testingRigStates),
+                            StateMachine("slider", newJob.sliderStates)
+                    )
+
                     ctx.json(id)
-                }*/
+                }
             }
 
             /**
@@ -296,12 +303,19 @@ class WebController(private val mqtt: MQTT,
              */
             post("/jobFile") { ctx ->
                 run {
-                   /* val writer = StringWriter()
+                    val writer = StringWriter()
                     IOUtils.copy(ctx.uploadedFile("job")?.content, writer)
                     val newJob = gson.fromJson(writer.toString(), Job::class.java)
                     val id = jobController.addJob(newJob)
-                    StateObserver.stateMachine = StateMachine(newJob.states)
-                    ctx.json(id)*/
+
+                    StateObserver.stateMachines = mutableListOf(
+                            StateMachine("roboticArm", newJob.roboticArmStates),
+                            StateMachine("conveyor", newJob.conveyorStates),
+                            StateMachine("testingRig", newJob.testingRigStates),
+                            StateMachine("slider", newJob.sliderStates)
+                    )
+
+                    ctx.json(id)
                 }
             }
 
@@ -310,10 +324,15 @@ class WebController(private val mqtt: MQTT,
              */
             put("/selectedJob") { ctx ->
                 run {
-                    /*
                     jobController.setSelectedJob(ctx.body())
                     messageController.autoPlay = false
-                    StateObserver.stateMachine = StateMachine(jobController.selected.states)*/
+
+                    StateObserver.stateMachines = mutableListOf(
+                            StateMachine("roboticArm", jobController.selected.roboticArmStates),
+                            StateMachine("conveyor", jobController.selected.conveyorStates),
+                            StateMachine("testingRig", jobController.selected.testingRigStates),
+                            StateMachine("slider", jobController.selected.sliderStates)
+                    )
                 }
             }
 

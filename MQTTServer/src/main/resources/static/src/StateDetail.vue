@@ -61,6 +61,12 @@ input {
   position: relative;
   height: 25px;
   padding: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.dependency-row .material-icons {
+    margin-left: 10px;
 }
 
 .dependency-select {
@@ -146,17 +152,20 @@ input {
     <p>List of dependencies</p>
     <!-- Type coersion with != instead of !== required for null != undefined to be false -->
     <div class="dependency-row" v-for="dependency in Object.entries(this.state.dependencies).filter(entry => entry[1] != undefined)">
-      <p>{{dependency[0]}}: {{dependency[1]}}</p>
+     
+      <span @click="deleteDependency(dependency[0])">{{dependency[0]}}: {{dependency[1]}}</span>
+       <i class="material-icons">delete_forever</i>
     </div>
 
     <p>New Dependency</p>
     <div class="dependency-row">
       <select class="dependency-select" v-model="newDependencyModel">
         <option value="-1">Choose Dependency</option>
-        
-        <option v-for="(possDep, index) in possibleDependecies" v-bind:value="index">{{ possDep }}</option>
-      </select>
+        <optgroup v-for="stateCollection in possibleDependecies" :label="stateCollection.stateGroup">
+            <option v-for="state in stateCollection.states" v-bind:value="state.index">{{ state.name }}</option>
+        </optgroup>
 
+      </select>
       <select class="dependency-type-select" v-model="newDependencyType">
         <option>Choose Dependency Type</option>
         <option value="true">Positive</option>
@@ -294,11 +303,43 @@ export default {
             xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
             xhr.send(JSON.stringify(this.state.environment));
         },
+        deleteDependency(el) {
+          console.log(this.state.dependencies);
+          this.state.dependencies[el] = null;
+        
+          this.$forceUpdate();
+        },
         addDependency() {
-          this.state.dependencies = this.state.dependencies || {};
-          this.state.dependencies[this.possibleDependecies[this.newDependencyModel]] = this.newDependencyType === 'true';
+          if(this.newDependencyModel == -1) return;
+          //Retrieve all possible states to be possible dependencies
+          let stateNames = [] 
+          this.possibleDependecies.forEach(dependencyGroup => {
+              dependencyGroup.states.forEach(state => {
+                 stateNames.push(state.name);
+              })
+          })
+
+          this.state.dependencies = this.state.dependencies || {};   
+
+          //Get selected as dependency to add
+          let stateToUpdate = stateNames[this.newDependencyModel];
+
+          //Retrieve camera states to distinguish sensor-dependencies from state-dependencies
+          let cameraStateNames = null;
+          for (let i = 0; i < this.possibleDependecies.length; i++) {
+            if (this.possibleDependecies[i].stateGroup == 'cameraStates') cameraStateNames = this.possibleDependecies[i].states.map(function(el) { return el.name; });
+          }
+
+          //If is sensor dependencie, set true or false as selected, otherwise (if state dependency) add to list of state dependencies 
+          if (cameraStateNames != null && cameraStateNames.length > 0 && cameraStateNames.includes(stateToUpdate)) {
+            this.state.dependencies[stateToUpdate] = this.newDependencyType === 'true';
+          } else { //is state dependency
+            this.state.dependencies.states = this.state.dependencies.states == null ? [stateToUpdate] : [...this.state.dependencies.states, stateToUpdate] 
+          }
+          
           this.newDependencyModel = -1;
           this.newDependencyType = '';
+          
           this.$forceUpdate();
         }
     }
