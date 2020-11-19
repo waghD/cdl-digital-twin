@@ -251,7 +251,7 @@ export default {
               });
             }
         }
-        
+
         possibleDependencies.push({
             stateGroup: "cameraStates",
             states: [

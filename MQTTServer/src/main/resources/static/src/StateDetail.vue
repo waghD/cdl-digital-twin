@@ -92,6 +92,11 @@ input {
   transform: translateY(-50%);
 }
 
+.dependency-row i:hover {
+  cursor:pointer;
+  opacity:0.6;
+}
+
 </style>
 <template>
 <div>
@@ -153,20 +158,20 @@ input {
     <!-- Type coersion with != instead of !== required for null != undefined to be false -->
     <div class="dependency-row" v-for="dependency in Object.entries(this.state.dependencies).filter(entry => entry[1] != undefined)">
      
-      <span @click="deleteDependency(dependency[0])">{{dependency[0]}}: {{dependency[1]}}</span>
-       <i class="material-icons">delete_forever</i>
+      <span>{{dependency[0]}}: {{dependency[1]}}</span>
+       <i @click="deleteDependency(dependency[0])" class="material-icons">delete_forever</i>
     </div>
 
     <p>New Dependency</p>
     <div class="dependency-row">
-      <select class="dependency-select" v-model="newDependencyModel">
+      <select class="dependency-select" @change="onDependencySelectChange($event)" v-model="newDependencyModel">
         <option value="-1">Choose Dependency</option>
         <optgroup v-for="stateCollection in possibleDependecies" :label="stateCollection.stateGroup">
             <option v-for="state in stateCollection.states" v-bind:value="state.index">{{ state.name }}</option>
         </optgroup>
 
       </select>
-      <select class="dependency-type-select" v-model="newDependencyType">
+      <select class="dependency-type-select" v-model="newDependencyType" v-if="!dependencySelectIsHidden">
         <option>Choose Dependency Type</option>
         <option value="true">Positive</option>
         <option value="false">Negative</option>
@@ -200,6 +205,7 @@ export default {
             currentDependecies: [],
             newDependencyModel: -1,
             newDependencyType: '',
+            dependencySelectIsHidden: true,
         }
     },
     watch: {
@@ -309,29 +315,45 @@ export default {
         
           this.$forceUpdate();
         },
-        addDependency() {
-          if(this.newDependencyModel == -1) return;
+        getStateByIndex(index) {
+
           //Retrieve all possible states to be possible dependencies
           let stateNames = [] 
+
           this.possibleDependecies.forEach(dependencyGroup => {
               dependencyGroup.states.forEach(state => {
                  stateNames.push(state.name);
               })
           })
 
-          this.state.dependencies = this.state.dependencies || {};   
+          return stateNames[index];
 
-          //Get selected as dependency to add
-          let stateToUpdate = stateNames[this.newDependencyModel];
+        },
+        isSensorDependency(stateToUpdate) {
 
           //Retrieve camera states to distinguish sensor-dependencies from state-dependencies
           let cameraStateNames = null;
+
           for (let i = 0; i < this.possibleDependecies.length; i++) {
             if (this.possibleDependecies[i].stateGroup == 'cameraStates') cameraStateNames = this.possibleDependecies[i].states.map(function(el) { return el.name; });
           }
 
+          if (cameraStateNames != null && cameraStateNames.length > 0 && cameraStateNames.includes(stateToUpdate)) return true;
+
+          return false;
+
+        },
+        addDependency() {
+          if(this.newDependencyModel == -1) return;
+          this.state.dependencies = this.state.dependencies || {};   
+
+          
+
+          //Get selected as dependency to add
+          let stateToUpdate = this.getStateByIndex(this.newDependencyModel);          
+
           //If is sensor dependencie, set true or false as selected, otherwise (if state dependency) add to list of state dependencies 
-          if (cameraStateNames != null && cameraStateNames.length > 0 && cameraStateNames.includes(stateToUpdate)) {
+          if (this.isSensorDependency(stateToUpdate)) {
             this.state.dependencies[stateToUpdate] = this.newDependencyType === 'true';
           } else { //is state dependency
             this.state.dependencies.states = this.state.dependencies.states == null ? [stateToUpdate] : [...this.state.dependencies.states, stateToUpdate] 
@@ -340,6 +362,17 @@ export default {
           this.newDependencyModel = -1;
           this.newDependencyType = '';
           
+          this.$forceUpdate();
+        },
+        onDependencySelectChange(e) {
+           if(this.newDependencyModel == -1) return;
+     
+          let selectedIndex = e.target.value;
+           //Get selected as dependency to add
+          let stateToUpdate = this.getStateByIndex(selectedIndex);     
+
+          this.dependencySelectIsHidden = !this.isSensorDependency(stateToUpdate);
+
           this.$forceUpdate();
         }
     }
