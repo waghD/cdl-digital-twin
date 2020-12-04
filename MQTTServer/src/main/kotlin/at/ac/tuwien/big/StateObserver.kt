@@ -90,10 +90,6 @@ object StateObserver : Observable<BasicState>() {
                 if ( match.first.isSatisfied(latestMatches, cameraState)) {
                     latestMatches[sm.name] = match
                     notify(latestMatches[sm.name]?.first ?: BasicState())
-                } else {
-                    println(                    match.first.name
-                    )
-                    println("Not satisfied yet")
                 }
 
             }

@@ -202,7 +202,7 @@ class WebController(private val mqtt: MQTT,
              */
             put("/sliderState") { ctx ->
                 run {
-                   /* val match = StateObserver.stateMachine?.all()?.find { it.name == ctx.body() }
+                    /* val match = StateObserver.stateMachine?.all()?.find { it.name == ctx.body() }
                     if (match != null)
                         send(SliderTransition(SliderState(), match.environment.sliderState!!))*/
                 }

@@ -27,9 +27,14 @@ class MessageController(private val mqtt: MQTT,
     var webcam: Webcam?
 
     init {
-        mqtt.subscribe(listOf(simSensor, sensor, detectionCamera, pickupCamera), this::onMessage)
+        mqtt.subscribe(listOf(simSensor, sensor, detectionCamera, pickupCamera, status), this::onMessage)
         StateObserver.subscribe {
-            sendWebSocketMessageState(it.name)
+            StateObserver.latestMatches.forEach {it2 ->
+                if (it2.value.first == it) {
+                    sendWebSocketMessageState("{\"machine\":\"" + it2.key + "\",\"name\":\"" + it.name + "\"}")
+                }
+
+            }
         }
         try {
             webcam = Webcam.getWebcams()[1]
@@ -79,7 +84,12 @@ class MessageController(private val mqtt: MQTT,
      */
     private fun onMessage(topic: String, message: String) {
         when (topic) {
+            status -> {
+                sendWebSocketMessageContext(message)
+            }
+
             sensor, simSensor -> {
+
                 val state = parse(message)
                 if (recording) {
                     if (state is RoboticArmState) {
@@ -183,14 +193,12 @@ class MessageController(private val mqtt: MQTT,
         }
 
        // val nowInTransition = formerTarget?.environment?.roboticArmState != StateObserver.targetStates["roboticArm"]?.environment?.roboticArmState
-
+        println(StateObserver.latestMatches)
         for (transition in transitions) {
             /*if (!lastInTransition && nowInTransition) {
             }*/
             StateObserver.latestMatches.forEach {
-                sendWebSocketMessageContext(gson.toJson(it.value))
-                println("gson.toJson(it.value)")
-                println(gson.toJson(it.value))
+                sendWebSocketMessageContext(gson.toJson( it.value))
             }
 
             //val context = StateObserver.latestMatch
@@ -206,6 +214,7 @@ class MessageController(private val mqtt: MQTT,
         }
         //lastInTransition = nowInTransition
     }
+
 
     private fun parse(payload: String): StateEvent {
         val basicState = gson.fromJson(payload, BasicStateEvent::class.java)

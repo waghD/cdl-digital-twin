@@ -23,6 +23,7 @@ const val detectionCamera = "DetectionCamera"
 const val pickupCamera = "PickupCamera"
 const val simActuator = "Actuator-Simulation"
 const val actuator = "Actuator"
+const val status = "Status"
 
 fun main(args: Array<String>) {
     Runtime.getRuntime().addShutdownHook(Thread {
@@ -39,9 +40,10 @@ fun main(args: Array<String>) {
     }
     val sensors = listOf(simSensor, sensor, detectionCamera, pickupCamera)
     val actuators = listOf(simActuator, actuator)
+    val status = listOf(status)
     val objectTracker = ObjectTracker(hosts.objectTracker)
     val influx = TimeSeriesDatabase(hosts.influx)
-    val mqtt = MQTT(hosts.mqtt, sensors, actuators)
+    val mqtt = MQTT(hosts.mqtt, sensors + status, actuators)
     val controller = MessageController(mqtt, objectTracker, influx)
     val jobs = JobController()
     val web = WebController(mqtt, controller, jobs, influx)

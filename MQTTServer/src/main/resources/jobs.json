@@ -20,16 +20,6 @@
       }
     }
   },
-    /*{
-    "name": "Drive Down Conveyor",
-    "type": "BasicState",
-    "environment": {
-    "conveyorState": {
-    "detected": true,
-    "adjusterPosition": 1.9
-    }
-    }
-    },*/
     {
       "name": "Pickup Conveyor",
       "type": "BasicState",
@@ -121,19 +111,7 @@
 
     }
   },
-    /*{
-    "name": "Drop Object Robo",
-    "type": "BasicState",
-    "environment": {
-    "roboticArmState": {
-    "basePosition": 0.0,
-    "mainArmPosition": 0.0,
-    "secondArmPosition": 0.0,
-    "headMountPosition": 0.0,
-    "gripperPosition": 0.0
-    }
-    }
-    },*/
+
     {
       "name": "Slider Home Robo",
       "type": "BasicState",

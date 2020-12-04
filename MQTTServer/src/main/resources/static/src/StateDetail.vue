@@ -105,6 +105,7 @@ input {
     <button class="toggleButton" @click="showDependecies = !showDependecies">Toggle Dependencies</button>
   </div>
   <div class="main-card-area" v-if="!showDependecies">
+    <!--
     <div class="third" v-if="stateGroup == 'testingRigStates'">
       <h2>Testing Rig <input type="checkbox" v-model="testingRig"></h2>
       <div v-bind:class="{ disabled: !testingRig}">
@@ -119,6 +120,18 @@ input {
         <h3>Actuators</h3>
         <p>Plate Temp.: <input type="number" step="0.1" style="width: 45px;" v-if="testingRig" v-model="state.environment.testingRigState.heatplateTemperature">°C</p>
       </div>
+    </div>
+    -->
+
+    <div class="third" v-if="stateGroup == 'sliderStates'">
+      <h2>Slider</h2>
+        <div v-bind:class="{ disabled: !slider}">
+          <h3>Actuators</h3>
+          <div v-if="state.environment.sliderState">
+            <p>Position: <input v-model="state.environment.sliderState.sliderPosition" type="number" step="0.01"></p>
+            <button @click="move()">Move to Position</button>
+          </div>
+        </div>
     </div>
     <div class="third" v-if="stateGroup == 'roboticArmStates'">
       <h2>Robotic Arm</h2>
@@ -140,19 +153,22 @@ input {
         </div>
       </div>
     </div>
+    
     <div class="third" v-if="stateGroup == 'conveyorStates'">
       <h2>Conveyor <input type="checkbox" v-model="conveyor"></h2>
       <div v-bind:class="{ disabled: !conveyor}">
-        <h3>Sensors</h3>
-        <p>Object Detectected: <input v-if="conveyor" style="float: right;" type="checkbox" v-model="state.environment.conveyorState.detected"></p>
-        <p>Object In Window: <input v-if="conveyor" style="float: right;" type="checkbox" v-model="state.environment.conveyorState.inPickupWindow"></p>
         <h3>Actuators</h3>
         <p>Adjuster: <select v-if="conveyor" style="float: right;" v-model="state.environment.conveyorState.adjusterPosition"><option value="1.67">Open</option><option value="1.91">Pushed</option></select></p>
+        <p><input readonly style="float: right;" v-model="state.environment.conveyorState.adjusterPosition" type="number" step="0.01"></p><br><br>
         <p>Activate Slider: <input style="float: right;" type="checkbox" v-model="slider"></p>
-        <p>Slider: <select v-if="slider" style="float: right;" v-model="state.environment.sliderState.sliderPosition"><option value="0.08">Home</option><option value="0.42">Pushed</option></select></p>
+        <p>Slider: </p>
+        <button @click="move()">Move to Position</button>
+
       </div>
     </div>
   </div>
+
+
   <div class="main-card-area" v-if="showDependecies">
     <p>List of dependencies</p>
     <!-- Type coersion with != instead of !== required for null != undefined to be false -->
