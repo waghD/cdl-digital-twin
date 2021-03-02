@@ -8,6 +8,86 @@ import at.ac.tuwien.big.sm.StateBase
  * Holds all defined states and according successor
  */
 class StateMachine(val name: String, val states: List<StateBase>) {
+    var successors = mutableMapOf<String, List<String>>()
+
+
+    init {
+        states.forEachIndexed { idx, s ->
+            run {
+
+                when (s) {
+                    is BasicState -> {
+                        if (idx < states.size-1) {
+                            var succState = states.get(idx + 1)
+                            when (succState) {
+                                is BasicState -> successors.put(s.name, listOf(succState.name))
+                                is ChoiceState -> {
+                                    successors.put(s.name, listOf(succState.choices.first.first().name, succState.choices.second.first().name))
+
+                                }
+                                else -> {
+                                }
+                            }
+                        } else {
+                            successors.put(s.name, listOf(states.get(0).name))
+                        }
+                    }
+                    is ChoiceState -> {
+                        var firstChoices = s.choices.first
+                        firstChoices.forEachIndexed { idx2, s2 ->
+                            run {
+                                if (idx2 == firstChoices.size - 1) {
+                                    if (idx < states.size-1) {
+                                        var succState2 = states.get(idx + 1)
+                                        when (succState2) {
+                                            is BasicState -> successors.put(s2.name, listOf(succState2.name))
+                                            is ChoiceState -> successors.put(s2.name, listOf(succState2.choices.first.first().name, succState2.choices.second.first().name))
+                                            else -> {
+                                            }
+                                        }
+                                    } else {
+                                        successors.put(s2.name, listOf(states.get(0).name))
+                                    }
+
+                                } else {
+                                    successors.put(s2.name, listOf(firstChoices.get(idx2 + 1).name))
+                                }
+                            }
+                        }
+                        var secondChoices = s.choices.second
+                        secondChoices.forEachIndexed { idx3, s3 ->
+                            run {
+                                if (idx3 == secondChoices.size - 1) {
+                                    if (idx < states.size-1) {
+
+                                        var succState3 = states.get(idx + 1)
+                                        when (succState3) {
+                                            is BasicState -> successors.put(s3.name, listOf(succState3.name))
+                                            is ChoiceState -> successors.put(s3.name, listOf(succState3.choices.first.first().name, succState3.choices.second.first().name))
+                                            else -> {
+                                            }
+                                        }
+                                    } else {
+                                        successors.put(s3.name, listOf(states.get(0).name))
+
+                                    }
+                                } else {
+                                    successors.put(s3.name, listOf(secondChoices.get(idx3 + 1).name))
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                    }
+
+
+                }
+
+
+            }
+        }
+        println(successors)
+    }
 
 
     /**
@@ -80,6 +160,38 @@ class StateMachine(val name: String, val states: List<StateBase>) {
         }
     }
 
+    /**
+     * Is the given state the initial state?
+     * @returns `true`, if yes, `false` if no
+     */
+    fun isInitialState(state: BasicState): Boolean {
+        val isInitial = state == states.first()
+        return if (isInitial) {
+            true
+        } else {
+            val first = states.first()
+            if (first is ChoiceState) {
+                state == first.choices.first.first() || state == first.choices.second.first()
+            } else {
+                false
+            }
+        }
+    }
+
+
+    /**
+     * Checks if descendant is actual 'next" state of current 'state'
+     */
+    fun isDescendantState(state: BasicState, descendant: BasicState): Boolean {
+        if (state.name.compareTo("Snapshot")==0) return true
+
+
+        println(state.name + " succ. of " + descendant.name)
+        println(successors!!.get(state.name)!!.contains(descendant.name))
+
+
+        return successors!!.get(state.name)!!.contains(descendant.name)
+    }
 
 
     fun all(): List<BasicState> {

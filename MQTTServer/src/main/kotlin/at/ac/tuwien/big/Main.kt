@@ -5,6 +5,7 @@ package at.ac.tuwien.big
 import at.ac.tuwien.big.api.HedgehogController
 import at.ac.tuwien.big.api.JobController
 import at.ac.tuwien.big.api.WebController
+import at.ac.tuwien.big.sm.BasicState
 
 /**
  * Set of hosts required for all services
@@ -47,13 +48,16 @@ fun main(args: Array<String>) {
     val controller = MessageController(mqtt, objectTracker, influx)
     val jobs = JobController()
     val web = WebController(mqtt, controller, jobs, influx)
-
     StateObserver.stateMachines = mutableListOf(
             StateMachine("roboticArm", jobs.getJobs().first().roboticArmStates),
             StateMachine("conveyor",jobs.getJobs().first().conveyorStates),
             StateMachine("testingRig",jobs.getJobs().first().testingRigStates),
             StateMachine("slider",jobs.getJobs().first().sliderStates)
     )
+
+    /*StateObserver.stateMachines!!.forEach { sm ->
+        StateObserver.latestMatches[sm.name] = Pair(sm.states.first() as BasicState, true)
+    }*/
 
 
     controller.start()

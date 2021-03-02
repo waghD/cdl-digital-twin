@@ -50,6 +50,7 @@ class MessageController(private val mqtt: MQTT,
     }
 
     fun start() {
+
         timer.schedule(0, 1000) {
             observe()
         }
@@ -125,6 +126,7 @@ class MessageController(private val mqtt: MQTT,
                     val inPickupWindow = tracking != null && 36 < tracking.x && tracking.x < 125 && 60 < tracking.y && tracking.y < 105
                     StateObserver.cameraState.pickupDetected = detected
                     StateObserver.cameraState.testRigDetected = inPickupWindow
+                    println("Detected?")
 
                     sendWebSocketMessagePickupCamera("{\"image\": \"$message\", \"tracking\": ${gson.toJson(it)}}")
                     pickup.delete()
@@ -135,6 +137,7 @@ class MessageController(private val mqtt: MQTT,
 
     private fun observe() {
         if (autoPlay) {
+            StateObserver.inResMode = false
             val transitions = mutableListOf<Transition>()
             StateObserver.stateMachines?.forEach {
                 if (!StateObserver.atEndState(it)) {
@@ -184,7 +187,6 @@ class MessageController(private val mqtt: MQTT,
     }
 
     fun reset() {
-
        // val latest = StateObserver.latestMatch.first
        // val formerTarget = StateObserver.targetStates["roboticArm"]
         val transitions = mutableListOf<Transition>()
@@ -193,7 +195,7 @@ class MessageController(private val mqtt: MQTT,
         }
 
        // val nowInTransition = formerTarget?.environment?.roboticArmState != StateObserver.targetStates["roboticArm"]?.environment?.roboticArmState
-        println(StateObserver.latestMatches)
+       // println(StateObserver.latestMatches)
         for (transition in transitions) {
             /*if (!lastInTransition && nowInTransition) {
             }*/

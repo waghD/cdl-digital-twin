@@ -226,15 +226,18 @@ article {
               >
             </div>
           </div>
-          <state-machine
+          <state-machine @rerenderCB="rerenderAll"
+            :key="componentKeyRoboticArm"
             :job="selectedJob"
+            
             :stateGroup="'roboticArmStates'"
             :color="'#343a40'"
             :machineName="'RoboticArm'"
             :context="context"
             :socket="socket"
           ></state-machine>
-          <state-machine
+          <state-machine @rerenderCB="rerenderAll"
+          :key="componentKeySlider"
             :job="selectedJob"
             :stateGroup="'sliderStates'"
             :color="'#343a40'"
@@ -242,7 +245,8 @@ article {
             :context="context"
             :socket="socket"
           ></state-machine>
-          <state-machine
+          <state-machine @rerenderCB="rerenderAll"
+          :key="componentKeyConveyor"
             :job="selectedJob"
             :stateGroup="'conveyorStates'"
             :color="'#343a40'"
@@ -250,7 +254,8 @@ article {
             :context="context"
             :socket="socket"
           ></state-machine>
-          <state-machine
+          <state-machine @rerenderCB="rerenderAll"
+          :key="componentKeyTestingRig"
             :job="selectedJob"
             :stateGroup="'testingRigStates'"
             :color="'#343a40'"
@@ -299,6 +304,10 @@ export default {
       recordingColor: "darkslategray",
       newJobTitle: "New Job",
       editTitle: false,
+      componentKeyRoboticArm: 0,
+      componentKeySlider: 0,
+      componentKeyConveyor: 0,
+      componentKeyTestingRig: 0,
       loadingOverlay: false,
       loaderMessage: "",
       currentState: {
@@ -308,6 +317,7 @@ export default {
         testingRig: null,
       },
       jobs: [],
+
       selectedJob: null,
       downloadLink: "",
       file: null,
@@ -462,6 +472,14 @@ export default {
     });
   },
   methods: {
+    rerenderAll() {
+            this.componentKeyRoboticArm += 1;
+            this.componentKeyConveyor += 1;
+            this.componentKeySlider += 1;
+            this.componentKeyTestingRig += 1;
+
+
+    },
     areMachinesInInitialState(currentStates) {
       return (
         this.selectedJob.conveyorStates[0].name == currentStates["conveyor"] &&

@@ -117,7 +117,12 @@ class WebController(private val mqtt: MQTT,
             /**
              * Start or stop the selected job at its current position (`true` for start, `false` for stop)
              */
-            put("/autoPlay") { ctx -> messageController.autoPlay = ctx.body().toBoolean() }
+            put("/autoPlay") {
+
+                ctx -> messageController.autoPlay = ctx.body().toBoolean()
+
+
+            }
 
             /**
              * Returns, whether recording sensor data in the time-series database is activated
@@ -349,7 +354,10 @@ class WebController(private val mqtt: MQTT,
             put("/reset") { ctx ->
                 run {
                     println("got request")
+
                     messageController.autoPlay = false
+                    StateObserver.inResMode = true
+                    StateObserver.resetControlContext()
                     messageController.reset()
                     ctx.status(200)
                 }

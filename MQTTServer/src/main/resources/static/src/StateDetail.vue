@@ -159,7 +159,7 @@ input {
       <div v-bind:class="{ disabled: !conveyor}">
         <h3>Actuators</h3>
         <p>Adjuster: <select v-if="conveyor" style="float: right;" v-model="state.environment.conveyorState.adjusterPosition"><option value="1.67">Open</option><option value="1.91">Pushed</option></select></p>
-        <p><input readonly style="float: right;" v-model="state.environment.conveyorState.adjusterPosition" type="number" step="0.01"></p><br><br>
+        <p><input style="float: right;" v-model="state.environment.conveyorState.adjusterPosition" type="number" step="0.01"></p><br><br>
         <p>Activate Slider: <input style="float: right;" type="checkbox" v-model="slider"></p>
         <p>Slider: </p>
         <button @click="move()">Move to Position</button>
@@ -218,32 +218,14 @@ export default {
             conveyor: this.state.environment.conveyorState != null,
             slider: this.state.environment.sliderState != null,
             showDependecies: false,
-            currentDependecies: [],
+            currentDependecies: this.possibleDependecies,
             newDependencyModel: -1,
             newDependencyType: '',
             dependencySelectIsHidden: true,
         }
     },
     watch: {
-        state(val) {
-          console.log('state whatch: ');
-          console.log('val: ', val);
-          if(val) {
-            let dependencies = [];
-            for(const key in val.dependencies) {
-              if(val.dependencies.hasOwnProperty(key) && val.dependencies[key] !== undefined) {
-                dependencies.push({
-                  dependencyState: key,
-                  positiveDependecy: val.dependencies[key]
-                });
-              }
-            }
-            console.log('dependencies: ', dependencies);
-            this.currentDependecies = dependencies;
-          } else {
-            this.currentDependecies = []
-          }
-        },
+      
         testingRig(val) {
             if (val) {
                 this.state.environment.testingRigState = {

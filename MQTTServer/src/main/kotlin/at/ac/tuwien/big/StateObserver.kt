@@ -16,6 +16,7 @@ object StateObserver : Observable<BasicState>() {
      */
     var stateMachines: MutableList<StateMachine>? = null
 
+    var inResMode: Boolean = false
     /*
      * Current camera states in environments for detection of objects
      * on conveyor and test rig
@@ -47,7 +48,6 @@ object StateObserver : Observable<BasicState>() {
             "testingRig" to BasicState(),
             "slider" to BasicState()
     )
-
 
     /**
      * Update the unit with new sensor information. This includes matching the updated state to the set of defined states.
@@ -81,24 +81,50 @@ object StateObserver : Observable<BasicState>() {
         }
 
 
-
         StateObserver.stateMachines?.forEach {sm ->
-            val match = matchState(snapshot, sm)
-            if (match != null && latestMatches[sm.name] != match ) {
-                /* Check if this newly matched stated satisfies all constraints assigned to it
-                * If satisfied, can transition into this new state */
-                if ( match.first.isSatisfied(latestMatches, cameraState)) {
-                    latestMatches[sm.name] = match
-                    notify(latestMatches[sm.name]?.first ?: BasicState())
+
+            val match = matchState(snapshot, sm, latestMatches[sm.name]!!.first, inResMode)
+
+                if (match != null && latestMatches[sm.name] != match ) {
+
+                        /* Check if this newly matched stated satisfies all constraints assigned to it
+                        * If satisfied, can transition into this new state */
+                        if (inResMode || match.first.isSatisfied(latestMatches, cameraState)) {
+                            latestMatches[sm.name] = match
+                            notify(latestMatches[sm.name]?.first ?: BasicState())
+                            if(inResMode) inResMode = !allStateMachinesInInitialState()
+
+
+                        }
                 }
 
-            }
+
         }
 
     }
 
+    fun allStateMachinesInInitialState() : Boolean {
+        StateObserver.stateMachines?.forEach { sm ->
+            if(latestMatches[sm.name]!!.first != BasicState() && !sm.isInitialState(latestMatches[sm.name]!!.first)) return false
+
+        }
+        return true
+    }
 
 
+   /* fun setManualResetMode(mode: Boolean) {
+        StateObserver.stateMachines?.forEach { sm ->
+            if(!sm.isInitialState(latestMatches[sm.name]!!.first)) isManualResetMode[sm.name] = true
+            latestMatches
+        }
+    }
+
+    fun isInManualResetMode(): Boolean {
+        for ((_, value) in isManualResetMode) {
+            if(value) return true
+        }
+        return false
+    }*/
     /**
      * Return the defined successor state of the latest matching state, according to the state machine
      */
@@ -141,6 +167,32 @@ object StateObserver : Observable<BasicState>() {
         } else {
             emptyList()
         }
+    }
+
+    fun resetControlContext() {
+
+
+        cameraState = CameraState()
+        snapshot = Environment(RoboticArmState(), SliderState(), ConveyorState(), TestingRigState())
+
+        latestMatches = mutableMapOf(
+                "roboticArm" to Pair(BasicState(), true),
+                "conveyor" to Pair(BasicState(), true),
+                "testingRig" to Pair(BasicState(), true),
+                "slider" to Pair(BasicState(), true)
+        )
+
+       /* stateMachines!!.forEach { sm ->
+            latestMatches[sm.name] = Pair(sm.states.first() as BasicState, true)
+        }*/
+
+        targetStates = mutableMapOf(
+                "roboticArm" to BasicState(),
+                "conveyor" to BasicState(),
+                "testingRig" to BasicState(),
+                "slider" to BasicState()
+        )
+
     }
 
     /**
@@ -225,16 +277,32 @@ object StateObserver : Observable<BasicState>() {
      *
      * @return the matching state or null, if no match was found
      */
-    private fun matchState(env: Environment, sm: StateMachine): Pair<BasicState, Boolean>? {
+    private fun matchState(env: Environment, sm: StateMachine, curState: BasicState, inResMode: Boolean): Pair<BasicState, Boolean>? {
 
         val all = sm?.all() ?: emptyList()
 
-        val matches = all.filter {
-            env.matches(it.environment) || (it.altEnvironment != null && env.matches(it.altEnvironment!!))
+        var matches = all.filter {
+           env.matches(it.environment) || (it.altEnvironment != null && env.matches(it.altEnvironment!!))
         }
 
+
+
+        //During reset mode, ignore check whether matched state is actually valid successor state
+        if (!inResMode) {
+            matches = matches.filter {
+                sm.isDescendantState(curState, it)
+
+            }
+        }
+
+
+
+        if (matches.isNotEmpty()) {
+
+        }
         return if (matches.isNotEmpty()) {
             val match = matches.first()
+
             Pair(match, env.matches(match.environment))
         } else {
             null

@@ -10,25 +10,23 @@
       "conveyorState": {
         "adjusterPosition": 1.67
       }
+    },
+	"dependencies": {
+      "pickupDetected": true
     }
-  }, {
+  },
+	{
     "name": "Adjust Conveyor",
     "type": "BasicState",
     "environment": {
       "conveyorState": {
         "adjusterPosition": 1.9
       }
+    },
+	"dependencies": {
+      "pickupDetected": false
     }
-  },
-    {
-      "name": "Pickup Conveyor",
-      "type": "BasicState",
-      "environment": {
-        "conveyorState": {
-          "adjusterPosition": 1.67
-        }
-      }
-    }
+  }
   ],
   "sliderStates":
   [{
@@ -38,6 +36,9 @@
       "sliderState": {
         "sliderPosition": 0.078
       }
+    },
+	"dependencies": {
+      "pickupDetected": false
     }
   }, {
     "name": "Drop Object Slider",
@@ -46,18 +47,8 @@
       "sliderState": {
         "sliderPosition": 0.42
       }
-    },
-    "dependencies": {
-      "pickupDetected": false
     }
-  }, {
-    "name": "Slider Home Slider",
-    "type": "BasicState",
-    "environment": {
-      "sliderState": {
-        "sliderPosition": 0.078
-      }
-    }
+    
   }
 
   ],
@@ -95,7 +86,69 @@
     "dependencies": {
       "testRigDetected": true
     }
-  }
+  },
+    {
+      "type": "ChoiceState",
+      "name": "Heat TRS",
+      "choices": {
+        "first": [
+          {
+            "name": "Heat Green 1 TRS",
+            "type": "BasicState",
+            "environment": {
+              "testingRigState": {
+                "heatplateTemperature": "120.0"
+              }
+            }
+          },
+          {
+            "name": "Heat Green 2 TRS",
+            "type": "BasicState",
+            "environment": {
+              "testingRigState": {
+                "heatplateTemperature": "120.0"
+              }
+            }
+          }
+        ],
+        "second": [
+          {
+            "name": "Heat Red 1 TRS",
+            "type": "BasicState",
+            "environment": {
+              "testingRigState": {
+                "heatplateTemperature": "150.0"
+              }
+            }
+          },
+          {
+            "name": "Heat Red 2 TRS",
+            "type": "BasicState",
+            "environment": {
+              "testingRigState": {
+                "heatplateTemperature": "150.0"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Retrieve Grip TRS",
+      "type": "BasicState",
+      "sensor": "qr",
+      "environment": {
+        "testingRigState": {
+          "objectCategory": "GREEN"
+        }
+      },
+      "altEnvironment": {
+        "testingRigState": {
+          "objectCategory": "RED"
+        }
+      }
+    }
+
   ],
   "roboticArmStates": [{
     "name": "Idle Robo",
@@ -135,7 +188,6 @@
           "headMountPosition": 0.0,
           "gripperPosition": 0.0
         }
-
       },
       "dependencies": {
          "pickupDetected": true
@@ -151,10 +203,8 @@
           "headMountPosition": 0.0,
           "gripperPosition": 1.5
         }
-      },
-      "dependencies": {
-        "pickupDetected": true
       }
+
 
     }, {
       "name": "Pickup Robo",
@@ -167,9 +217,6 @@
           "headMountPosition": 0.0,
           "gripperPosition": -0.40
         }
-      },
-      "dependencies": {
-        "pickupDetected": true
       }
     }, {
       "name": "Lift Robo",
@@ -209,9 +256,6 @@
           "headMountPosition": -1.5,
           "gripperPosition": -0.2
         }
-      },
-      "dependencies": {
-        "Drive Down TRS": true
       }
     }, {
       "name": "Full Release Robo",
@@ -234,13 +278,171 @@
           "headMountPosition": -1.5,
           "gripperPosition": 1.0
         }
+      }
+    },
+    {
+      "name": "Heat Robo",
+      "type": "ChoiceState",
+      "choices": {
+        "first": [
+          {
+            "name": "Heat Green 1",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 3.142,
+                "mainArmPosition": 0.0,
+                "secondArmPosition": 0.0,
+                "headMountPosition": -1.5,
+                "gripperPosition": 0.8
+              }
+            }
+          },
+          {
+            "name": "Heat Green 2",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 3.142,
+                "mainArmPosition": 0.0,
+                "secondArmPosition": 0.0,
+                "headMountPosition": -1.5,
+                "gripperPosition": 0.9
+              }
+            }
+          }
+        ],
+        "second": [
+          {
+            "name": "Heat Red 1",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 3.142,
+                "mainArmPosition": 0.0,
+                "secondArmPosition": 0.0,
+                "headMountPosition": -1.5,
+                "gripperPosition": 0.7
+              }
+            }
+          },
+          {
+            "name": "Heat Red 2",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 3.142,
+                "mainArmPosition": 0.0,
+                "secondArmPosition": 0.0,
+                "headMountPosition": -1.5,
+                "gripperPosition": 0.6
+              }
+
+            }
+          }
+        ]
+      }
+  },
+    {
+      "name": "Retrieve Robo",
+      "type": "BasicState",
+      "environment": {
+        "roboticArmState": {
+          "basePosition": 3.142,
+          "mainArmPosition": 1.30,
+          "secondArmPosition": -1.30,
+          "headMountPosition": -1.5,
+          "gripperPosition": 1.0
+        }
+      }
+    },
+    {
+      "name": "Retrieve Grip Robo",
+      "type": "BasicState",
+      "sensor": "qr",
+      "environment": {
+        "roboticArmState": {
+          "basePosition": 3.142,
+          "mainArmPosition": 1.30,
+          "secondArmPosition": -1.30,
+          "headMountPosition": -1.5,
+          "gripperPosition": -0.4
+        }
       },
-      "dependencies": {
-        "Drive Down TRS": true
+      "altEnvironment": {
+        "roboticArmState": {
+          "basePosition": 3.142,
+          "mainArmPosition": 1.30,
+          "secondArmPosition": -1.30,
+          "headMountPosition": -1.5,
+          "gripperPosition": -0.4
+        }
+      }
+    },
+    {
+      "type": "ChoiceState",
+      "name": "Unnamed Robo",
+      "choices": {
+        "first": [
+          {
+            "name": "Deposit Green Robo",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 1.745,
+                "mainArmPosition": 0.942,
+                "secondArmPosition": -0.89,
+                "headMountPosition": 1.5,
+                "gripperPosition": -0.4
+              }
+            }
+          },
+          {
+            "name": "Release Green Robo",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 1.745,
+                "mainArmPosition": 0.942,
+                "secondArmPosition": -0.89,
+                "headMountPosition": 1.5,
+                "gripperPosition": 0.5
+              }
+            }
+          }
+        ],
+        "second": [
+          {
+            "name": "Deposit Red Robo",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 1.449,
+                "mainArmPosition": 0.942,
+                "secondArmPosition": -0.89,
+                "headMountPosition": 1.5,
+                "gripperPosition": -0.4
+              }
+            }
+          },
+          {
+            "name": "Release Red Robo",
+            "type": "BasicState",
+            "environment": {
+              "roboticArmState": {
+                "basePosition": 1.449,
+                "mainArmPosition": 0.942,
+                "secondArmPosition": -0.89,
+                "headMountPosition": 1.5,
+                "gripperPosition": 0.5
+              }
+            }
+          }
+        ]
       }
     }
-  ]
-}, {
+  ]}
+, {
   "name": "Test",
   "id": "31a2269b",
   "states": [{
@@ -274,7 +476,7 @@
       }
     },
     "sensor": "qr"
-  }, {
+  } ,{
     "name": "New 2",
     "type": "ChoiceState",
     "choices": {
@@ -315,5 +517,4 @@
     }
   }
   ]
-}
-]
+}]

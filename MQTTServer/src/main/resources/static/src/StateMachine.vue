@@ -404,6 +404,8 @@ export default {
 
   watch: {
     job(val) {},
+
+    
   },
 
   created() {
@@ -554,26 +556,92 @@ export default {
       this.showChoiceSettings = true;
     },
     addState() {
-      this.job[this.stateGroup].push({
-        name: "New " + (this.job[this.stateGroup].length + 1),
+      let newStateName = "New " + (this.job[this.stateGroup].length + 1)
+      let newStateObj = {
+        name: newStateName,
         type: "BasicState",
         environment: {
           roboticArmState: null,
           conveyorState: null,
           testingRigState: null,
+          sliderState: null
         },
-      });
+        dependencies: {
+
+        }
+      };
+      //Initial values acc. to statemachine type
+      switch(this.stateGroup) {
+        case "roboticArmStates":
+          newStateObj.environment.roboticArmState = {
+             "basePosition": 0.0,
+              "mainArmPosition": 0.0,
+              "secondArmPosition": 0.0,
+              "headPosition": 0.0,
+              "headMountPosition": 0.0,
+              "gripperPosition": 0.0
+          }
+          break
+        case "sliderStates":
+          newStateObj.environment.sliderState = {
+            "sliderPosition": 0.078
+          }
+          break
+        case "conveyorStates":
+          newStateObj.environment.conveyorState = {
+            "adjusterPosition": 1.67
+          }
+          break
+        case "testingRigStates":
+          newStateObj.environment.testingRigState = {
+            "heatplateTemperature": 110.0
+          }
+          break
+      }
+      this.job[this.stateGroup].push(newStateObj);
+      this.$emit('rerenderCB');
     },
     addStateChoice(s) {
-      s.push({
+      let newStateObj = 
+      {
         name: "New " + (s.length + 1),
         type: "ChoiceState",
         environment: {
           roboticArmState: null,
           conveyorState: null,
           testingRigState: null,
-        },
-      });
+          sliderState: null
+        }
+      };
+//Initial values acc. to statemachine type
+      switch(this.stateGroup) {
+        case "roboticArmStates":
+          newStateObj.environment.roboticArmState = {
+             "basePosition": 0.0,
+              "mainArmPosition": 0.0,
+              "secondArmPosition": 0.0,
+              "headPosition": 0.0,
+              "headMountPosition": 0.0,
+              "gripperPosition": 0.0
+          }
+          break
+        case "sliderStates":
+          newStateObj.environment.sliderState = {
+            "sliderPosition": 0.078
+          }
+          break
+        case "conveyorStates":
+          newStateObj.environment.conveyorState = {
+            "adjusterPosition": 1.67
+          }
+          break
+        case "testingRigStates":
+          newStateObj.environment.testingRigState = {
+            "heatplateTemperature": 110.0
+          }
+          break
+      }
+      s.push(newStateObj)
       this.$forceUpdate();
     },
 
